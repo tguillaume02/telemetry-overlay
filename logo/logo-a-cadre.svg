@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Telemetry Overlay">
+  <rect width="128" height="128" rx="28" fill="#0d1117"/>
+  <path d="M24 44V28h16M88 28h16v16M104 84v16H88M40 100H24V84" fill="none" stroke="#e6edf3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M34 86c16 0 20-24 32-24s16-16 24-16" fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="90" cy="46" r="7" fill="#fbbf24"/>
+</svg>
