@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telemetry Overlay · Ta télémétrie (drone, FPV, GoPro, vélo) sur ta vidéo</title>
+  <meta name="description" content="Incruste altitude, vitesse, batterie, GPS et trajectoire 3D sur tes vidéos de drone, d'avion RC, de GoPro ou de vélo. Gratuit, dans le navigateur, sans rien envoyer sur un serveur.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Telemetry Overlay">
+  <meta property="og:title" content="Telemetry Overlay · Ta télémétrie (drone, FPV, GoPro, vélo) sur ta vidéo">
+  <meta property="og:description" content="Drone, FPV, avion RC, GoPro, Insta360, vélo, rando : altitude, vitesse, GPS, cardio, carte et trajet 3D sur relief réel incrustés sur ta vidéo. Gratuit, 100 % local.">
+  <meta property="og:url" content="https://tguillaume02.github.io/telemetry-overlay/">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:image" content="https://tguillaume02.github.io/telemetry-overlay/logo/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://tguillaume02.github.io/telemetry-overlay/logo/og-image.jpg">
+  <link rel="icon" type="image/svg+xml" href="logo/telemetry-overlay-icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo/favicon-32.png">
+  <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
+  <meta name="theme-color" content="#0d1117">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-2: #0b1626;
+      --panel: #161b22;
+      --line: #2a313c;
+      --text: #e6edf3;
+      --muted: #8b98a8;
+      --accent: #38bdf8;
+      --accent-ink: #04212f;
+      --blue: #1e9bff;
+      --green: #3ddc5a;
+      --grad: linear-gradient(90deg, var(--blue), var(--green));
+      --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    html[data-lang="fr"] [lang="en"], html[data-lang="en"] [lang="fr"] { display: none !important; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 "Segoe UI", Roboto, system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+    a { color: var(--accent); }
+    img { max-width: 100%; height: auto; display: block; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+    /* Barre du haut */
+    .nav {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; gap: 18px;
+      padding: 10px 24px;
+      background: rgba(13, 17, 23, .82);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 700; letter-spacing: .02em; }
+    .brand img { width: 32px; height: 32px; }
+    .nav-links { display: flex; gap: 18px; margin-left: auto; font-size: 14px; }
+    .nav-links a { color: var(--muted); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .lang { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+    .lang button { padding: 3px 10px; border: 0; background: transparent; color: var(--muted); font: 12px inherit; cursor: pointer; }
+    .lang button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 22px; border-radius: 999px;
+      font-weight: 700; text-decoration: none; white-space: nowrap;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-main { background: var(--grad); color: #03131d; box-shadow: 0 6px 24px rgba(30, 155, 255, .35); }
+    .btn-main:hover { box-shadow: 0 8px 30px rgba(61, 220, 90, .35); }
+    .btn-ghost { border: 1px solid var(--line); color: var(--text); background: rgba(22, 27, 34, .7); }
+    .btn-ghost:hover { border-color: var(--accent); }
+    .btn-sm { padding: 6px 14px; font-size: 14px; }
+
+    /* Accroche */
+    .hero { position: relative; min-height: min(88vh, 820px); display: flex; align-items: flex-end; isolation: isolate; }
+    .hero-bg { position: absolute; inset: 0; z-index: -1; }
+    .hero-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+    .hero-bg::after {
+      content: ""; position: absolute; inset: 0;
+      background:
+        linear-gradient(90deg, rgba(13, 17, 23, .92) 0%, rgba(13, 17, 23, .6) 45%, rgba(13, 17, 23, .1) 75%),
+        linear-gradient(0deg, var(--bg) 0%, rgba(13, 17, 23, 0) 40%);
+    }
+    .hero .wrap { width: 100%; padding-top: 80px; padding-bottom: 48px; }
+    .kicker { margin: 0 0 14px; font: 600 12px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: #9fdcfb; }
+    h1 { margin: 0; max-width: 19ch; font-size: clamp(32px, 4.6vw, 60px); line-height: 1.08; letter-spacing: -.02em; }
+    h1 br.desk { display: none; }
+    @media (min-width: 1000px) {
+      h1 { max-width: none; font-size: clamp(44px, 3.9vw, 58px); }
+      h1 br.desk { display: inline; }
+    }
+    .grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p.lead { max-width: 560px; margin: 20px 0 28px; font-size: 18px; color: #c9d6e3; }
+    .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; max-width: 720px; margin-top: 44px; }
+    .stat { padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(13, 17, 23, .7); backdrop-filter: blur(6px); }
+    .stat b { display: block; font: 700 26px/1.1 var(--mono); }
+    .stat span { font: 600 11px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+    /* Sections */
+    section { padding: 88px 0; }
+    .eyebrow { margin: 0 0 10px; font: 600 12px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--green); }
+    h2 { margin: 0 0 14px; font-size: clamp(28px, 4vw, 44px); line-height: 1.1; letter-spacing: -.01em; }
+    .sub { max-width: 640px; margin: 0 0 40px; color: var(--muted); font-size: 17px; }
+
+    /* Univers */
+    .uses { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+    .use {
+      position: relative; padding: 22px; border: 1px solid var(--line); border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel), var(--bg));
+      transition: border-color .2s, transform .2s;
+    }
+    .use:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .use .num { font: 600 12px var(--mono); color: var(--muted); }
+    .use h3 { margin: 6px 0 8px; font-size: 21px; }
+    .use p { margin: 0 0 14px; color: #c0ccd8; font-size: 15px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+    .chips li { padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; font: 600 11px/1.6 var(--mono); letter-spacing: .06em; color: #9fdcfb; }
+
+    /* Vidéo */
+    .video-try { margin: 18px 0 0; color: var(--muted); font-size: 16px; }
+    .video-try a { color: var(--accent); font-weight: 600; }
+    .video-box { position: relative; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 30px 80px rgba(0, 0, 0, .5); }
+    .video-box video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; background: #000; }
+    .video-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 88px; height: 88px; padding: 0; border: 2px solid rgba(255, 255, 255, .85); border-radius: 50%; background: rgba(0, 0, 0, .55); color: #fff; cursor: pointer; display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); backdrop-filter: blur(4px); transition: transform .2s, background .2s, opacity .2s; }
+    .video-play svg { width: 42px; height: 42px; margin-left: 6px; fill: currentColor; }
+    .video-play:hover, .video-play:focus-visible { transform: translate(-50%, -50%) scale(1.08); background: rgba(0, 0, 0, .75); }
+    .video-box.lecture .video-play { opacity: 0; pointer-events: none; }
+    @media (max-width: 600px) { .video-play { width: 64px; height: 64px; } .video-play svg { width: 30px; height: 30px; margin-left: 4px; } }
+
+    /* Galerie */
+    .gallery { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+    .shot { margin: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--panel); }
+    .shot img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+    .shot figcaption { padding: 14px 16px 16px; }
+    .shot figcaption b { display: block; margin-bottom: 4px; }
+    .shot figcaption span { color: var(--muted); font-size: 14px; }
+    .shot.big { grid-column: span 3; }
+    .shot.mid { grid-column: span 2; }
+
+    /* Sources */
+    .sources { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .src { padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+    .src b { display: block; margin-bottom: 4px; }
+    .src span { color: var(--muted); font-size: 14px; }
+    .src code { font: 12px var(--mono); color: #c9d6e3; }
+    .marquee { margin-top: 40px; overflow: hidden; border-block: 1px solid var(--line); padding: 14px 0; mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+    .marquee-track { display: flex; gap: 40px; width: max-content; animation: defile 40s linear infinite; }
+    .marquee-track span { font: 600 13px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+    .marquee-track span::before { content: "◆"; margin-right: 40px; color: var(--blue); }
+    @keyframes defile { to { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+    /* Étapes */
+    .how { display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; align-items: start; }
+    .steps { counter-reset: s; margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+    .steps li { counter-increment: s; display: grid; grid-template-columns: 52px 1fr; gap: 4px 16px; padding: 20px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+    .steps li::before { content: counter(s, decimal-leading-zero); grid-row: span 2; font: 700 28px/1 var(--mono); background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .steps b { font-size: 18px; }
+    .steps span { color: var(--muted); font-size: 15px; }
+
+    /* Atouts */
+    .perks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .perk { padding: 20px; border-left: 2px solid; border-image: var(--grad) 1; background: linear-gradient(90deg, rgba(30, 155, 255, .06), transparent); }
+    .perk b { display: block; margin-bottom: 6px; font-size: 17px; }
+    .perk span { color: var(--muted); font-size: 15px; }
+
+    /* Final */
+    .final { text-align: center; padding: 100px 0; background: radial-gradient(ellipse at 50% 0%, rgba(30, 155, 255, .18), transparent 60%), radial-gradient(ellipse at 50% 100%, rgba(61, 220, 90, .1), transparent 60%); border-top: 1px solid var(--line); }
+    .final h2 { margin-inline: auto; max-width: 18ch; }
+    .final .sub { margin-inline: auto; }
+    .final .cta { justify-content: center; }
+    .price { margin: 0 0 28px; font: 700 clamp(36px, 6vw, 60px)/1 var(--mono); }
+    .price small { display: block; margin-top: 8px; font: 500 14px/1.4 "Segoe UI", system-ui, sans-serif; color: var(--muted); }
+    .donate { margin-top: 26px; color: var(--muted); font-size: 14px; }
+    .donate a { color: var(--text); font-weight: 600; text-decoration: none; margin: 0 6px; white-space: nowrap; }
+    .donate a:hover { color: var(--accent); }
+    footer { padding: 26px 0 36px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between; }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .how { grid-template-columns: 1fr; gap: 24px; }
+      .gallery { grid-template-columns: 1fr 1fr; }
+      .shot.big, .shot.mid { grid-column: span 2; }
+      .nav-links { display: none; }
+      .lang { margin-left: auto; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 0 16px; }
+      .nav { padding: 10px 16px; gap: 10px; }
+      .nav .btn-sm { display: none; }
+      section { padding: 64px 0; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .hero-bg::after { background: linear-gradient(0deg, var(--bg) 10%, rgba(13, 17, 23, .75) 60%, rgba(13, 17, 23, .4)); }
+      .cta .btn { width: 100%; justify-content: center; }
+      .steps li { grid-template-columns: 40px 1fr; padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="#top"><img src="logo/telemetry-overlay-icon.svg" alt="" width="32" height="32">Telemetry Overlay</a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#usages"><span lang="fr">Usages</span><span lang="en">Uses</span></a>
+      <a href="#galerie"><span lang="fr">Rendu</span><span lang="en">Results</span></a>
+      <a href="#sources"><span lang="fr">Sources</span><span lang="en">Sources</span></a>
+      <a href="#comment"><span lang="fr">Comment ça marche</span><span lang="en">How it works</span></a>
+      <a href="guide.html">Guide</a>
+    </nav>
+    <div class="lang" role="group" aria-label="Langue / Language">
+      <button type="button" data-set-lang="fr">FR</button>
+      <button type="button" data-set-lang="en">EN</button>
+    </div>
+    <a class="btn btn-main btn-sm" href="app.html"><span lang="fr">Ouvrir l'appli</span><span lang="en">Open the app</span></a>
+  </header>
+
+  <main id="top">
+    <!-- Accroche -->
+    <div class="hero">
+      <div class="hero-bg"><img src="presentation/pres1.jpg" alt="" width="1400" height="792" fetchpriority="high"></div>
+      <div class="wrap">
+        <p class="kicker"><span lang="fr">Gratuit · dans le navigateur · 100 % local</span><span lang="en">Free · in the browser · 100% local</span></p>
+        <h1 lang="fr">La télémétrie de ton vol, ta rando,<br class="desk"> ta sortie vélo ou moto…<br class="desk"> <span class="grad-text">incrustée dans ta vidéo.</span></h1>
+        <h1 lang="en">The telemetry of your flight, hike,<br class="desk"> bike or motorbike ride…<br class="desk"> <span class="grad-text">overlaid on your video.</span></h1>
+        <p class="lead" lang="fr">Altitude, vitesse, cardio, batterie, liaison radio, gaz, horizon, carte et trajet rejoué en 3D sur le relief réel : Telemetry Overlay incruste la télémétrie de ta radio, de ton contrôleur de vol, de ton drone DJI, de tes lunettes, de ta caméra ou de ta montre GPS sur ta vidéo. Rien à installer, rien à envoyer.</p>
+        <p class="lead" lang="en">Altitude, speed, heart rate, battery, radio link, throttle, horizon, map and the route replayed in 3D over real terrain: Telemetry Overlay overlays the telemetry from your radio, flight controller, DJI drone, goggles, camera or GPS watch onto your video. Nothing to install, nothing to upload.</p>
+        <div class="cta">
+          <a class="btn btn-main" href="app.html"><span lang="fr">▶ Ouvrir l'application, c'est gratuit</span><span lang="en">▶ Open the app, it's free</span></a>
+          <a class="btn btn-ghost" href="#video"><span lang="fr">Voir la vidéo de présentation</span><span lang="en">Watch the intro video</span></a>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>10+</b><span lang="fr">Formats de log</span><span lang="en">Log formats</span></div>
+          <div class="stat"><b>4K</b><span lang="fr">Export</span><span lang="en">Export</span></div>
+          <div class="stat"><b>3D</b><span lang="fr">Relief réel</span><span lang="en">Real terrain</span></div>
+          <div class="stat"><b>0 €</b><span lang="fr">Sans compte</span><span lang="en">No account</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usages -->
+    <section id="usages">
+      <div class="wrap">
+        <p class="eyebrow"><span lang="fr">Quatre univers, un seul outil</span><span lang="en">Four worlds, one tool</span></p>
+        <h2 lang="fr">De l'aile volante au vélo, la même appli.</h2>
+        <h2 lang="en">From flying wing to bike, the same app.</h2>
+        <p class="sub" lang="fr">Les logs sont lus tels quels, sans conversion préalable. Ce qui s'affiche dépend de ce que ton log contient.</p>
+        <p class="sub" lang="en">Logs are read as is, with no prior conversion. What you can show depends on what your log holds.</p>
+        <div class="uses">
+          <article class="use">
+            <span class="num">01</span>
+            <h3 lang="fr">FPV et modèles RC</h3><h3 lang="en">FPV and RC models</h3>
+            <p lang="fr">Log CSV de ta radio EdgeTX, blackbox INAV / Betaflight, log ArduPilot : RSSI, LQ, tension, courant, mAh, manches et horizon vrai.</p>
+            <p lang="en">EdgeTX radio CSV log, INAV / Betaflight blackbox, ArduPilot log: RSSI, LQ, voltage, current, mAh, sticks and true horizon.</p>
+            <ul class="chips"><li>RSSI</li><li>LQ</li><li>V</li><li>mAh</li><li lang="fr">MANCHES</li><li lang="en">STICKS</li></ul>
+          </article>
+          <article class="use">
+            <span class="num">02</span>
+            <h3 lang="fr">Drones DJI</h3><h3 lang="en">DJI drones</h3>
+            <p lang="fr">La télémétrie du MP4 lui-même, le fichier .SRT ou le FlightRecord .txt : altitude, vitesse, cap, batterie, et le vol rejoué en 3D.</p>
+            <p lang="en">Telemetry from the MP4 itself, the .SRT file or the FlightRecord .txt: altitude, speed, heading, battery, and the flight replayed in 3D.</p>
+            <ul class="chips"><li>ALT</li><li>KM/H</li><li lang="fr">CAP</li><li lang="en">HDG</li><li>3D</li><li>SRT</li></ul>
+          </article>
+          <article class="use">
+            <span class="num">03</span>
+            <h3 lang="fr">Lunettes et OSD</h3><h3 lang="en">Goggles and OSD</h3>
+            <p lang="fr">Le fichier .osd des lunettes Walksnail ou DJI (WTFOS) est redessiné avec ses polices, et combiné aux jauges d'un log de vol.</p>
+            <p lang="en">The .osd file from Walksnail or DJI (WTFOS) goggles is redrawn with its fonts, and combined with gauges from a flight log.</p>
+            <ul class="chips"><li>OSD</li><li>WALKSNAIL</li><li>WTFOS</li><li lang="fr">LIAISON</li><li lang="en">LINK</li></ul>
+          </article>
+          <article class="use">
+            <span class="num">04</span>
+            <h3 lang="fr">Caméras, vélo, course</h3><h3 lang="en">Cameras, bike, running</h3>
+            <p lang="fr">GPS et capteurs de ta GoPro ou Insta360, activité Garmin / Wahoo en FIT, TCX ou GPX : vitesse, dénivelé, cardio, cadence, puissance.</p>
+            <p lang="en">GPS and sensors from your GoPro or Insta360, Garmin / Wahoo activity as FIT, TCX or GPX: speed, elevation, heart rate, cadence, power.</p>
+            <ul class="chips"><li>GPS</li><li>BPM</li><li>W</li><li lang="fr">CADENCE</li><li lang="en">CADENCE</li><li>D+</li></ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Vidéo -->
+    <section id="video" style="padding-top:0">
+      <div class="wrap">
+        <p class="eyebrow"><span lang="fr">Le film en quelques minutes</span><span lang="en">The film in a few minutes</span></p>
+        <h2 lang="fr">Ta caméra a tout vu. Montre-le.</h2>
+        <h2 lang="en">Your camera saw it all. Show it.</h2>
+        <p class="sub" lang="fr">De l'import des fichiers à l'export de la vidéo finale, en passant par la synchro automatique et l'OSD des lunettes redessiné.</p>
+        <p class="sub" lang="en">From importing the files to exporting the final video, with automatic sync and the redrawn goggle OSD along the way.</p>
+        <div class="video-box">
+          <video id="presVideo" controls preload="none" poster="presentation/Screenshot.png" playsinline>
+            <source src="presentation/telemetry-overlay-presentation-en-20mb.mp4" type="video/mp4">
+          </video>
+          <button type="button" class="video-play" aria-label="Lire la vidéo / Play video">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+          </button>
+        </div>
+        <p class="video-try" lang="fr">Pas de vidéo sous la main ? <a href="app.html#exemple">Essaie l'appli avec la minute de vol de la vidéo →</a> (lunettes Walksnail Avatar + OSD INAV, 12 Mo)</p>
+        <p class="video-try" lang="en">No footage at hand? <a href="app.html#exemple">Try the app with the minute of flight from the video →</a> (Walksnail Avatar goggles + INAV OSD, 12 MB)</p>
+      </div>
+    </section>
+
+    <!-- Galerie -->
+    <section id="galerie" style="padding-top:0">
+      <div class="wrap">
+        <p class="eyebrow"><span lang="fr">Ce que ça donne</span><span lang="en">What you get</span></p>
+        <h2 lang="fr">Des jauges nettes. Un vol qui survole le vrai terrain.</h2>
+        <h2 lang="en">Sharp gauges. A flight over the real terrain.</h2>
+        <p class="sub" lang="fr">Chaque jauge se glisse où tu veux dans l'aperçu, se redimensionne à la molette et prend son propre style.</p>
+        <p class="sub" lang="en">Drag each gauge anywhere in the preview, resize it with the mouse wheel and give it its own style.</p>
+        <div class="gallery">
+          <figure class="shot big">
+            <img src="presentation/pres1.jpg" alt="Vidéo d'avion RC avec compteur de vitesse, cap, mini-carte satellite et bandeau de télémétrie" loading="lazy" width="1400" height="792">
+            <figcaption><b lang="fr">Jauges incrustées</b><b lang="en">Overlaid gauges</b>
+              <span lang="fr">Compteur à aiguille, bande de cap, mini-carte satellite et bandeau de valeurs.</span>
+              <span lang="en">Needle gauge, heading tape, satellite mini-map and value strip.</span></figcaption>
+          </figure>
+          <figure class="shot big">
+            <img src="presentation/pres2.jpg" alt="Vue 3D du vol sur relief réel avec rideau de trajectoire et statistiques" loading="lazy" width="965" height="545">
+            <figcaption><b lang="fr">Vue 3D sur relief réel</b><b lang="en">3D view over real terrain</b>
+              <span lang="fr">Le vol rejoué en plein écran, caméra derrière l'appareil, photo satellite et rideau de trajectoire.</span>
+              <span lang="en">The flight replayed full screen, chase camera, satellite photo and track curtain.</span></figcaption>
+          </figure>
+          <figure class="shot mid">
+            <img src="captures/jauges.png" alt="Panneau des jauges avec horizon artificiel, boussole et mini-carte" loading="lazy" width="1600" height="1000">
+            <figcaption><b lang="fr">Horizon, boussole, carte</b><b lang="en">Horizon, compass, map</b>
+              <span lang="fr">Valeur, graphe, cadran, barre ou bande verticale, en 8 zones ou position libre.</span>
+              <span lang="en">Value, graph, dial, bar or vertical tape, in 8 zones or free position.</span></figcaption>
+          </figure>
+          <figure class="shot mid">
+            <img src="captures/synchro.png" alt="Panneau de synchronisation vidéo / log" loading="lazy" width="1600" height="1000">
+            <figcaption><b lang="fr">Synchro automatique</b><b lang="en">Automatic sync</b>
+              <span lang="fr">Au son des moteurs ou au mouvement de l'image ; instantanée avec DJI, GoPro, Insta360.</span>
+              <span lang="en">By motor sound or image motion; instant with DJI, GoPro, Insta360.</span></figcaption>
+          </figure>
+          <figure class="shot mid">
+            <img src="captures/interface.png" alt="L'application avec la vidéo, le graphe du log et la frise des coupes" loading="lazy" width="1600" height="1000">
+            <figcaption><b lang="fr">Un vrai petit monteur</b><b lang="en">A real little editor</b>
+              <span lang="fr">Coupes, fondus, musique avec forme d'onde, export vertical 9:16.</span>
+              <span lang="en">Cuts, fades, music with waveform, vertical 9:16 export.</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sources -->
+    <section id="sources" style="padding-top:0">
+      <div class="wrap">
+        <p class="eyebrow"><span lang="fr">Sources lues</span><span lang="en">Supported sources</span></p>
+        <h2 lang="fr">D'où viennent tes données ?</h2>
+        <h2 lang="en">Where does your data come from?</h2>
+        <p class="sub" lang="fr">Glisse le fichier, l'appli reconnaît le format. Aucune conversion, aucun logiciel tiers.</p>
+        <p class="sub" lang="en">Drop the file, the app recognizes the format. No conversion, no third-party software.</p>
+        <div class="sources">
+          <div class="src"><b>EdgeTX</b><span lang="fr">Le CSV du dossier <code>LOGS</code> de la carte SD de ta radio.</span><span lang="en">The CSV from your radio's SD card <code>LOGS</code> folder.</span></div>
+          <div class="src"><b>ArduPilot · MAVLink</b><span lang="fr">DataFlash <code>.bin</code> / <code>.log</code>, ou <code>.tlog</code> / <code>.rlog</code> de la station sol.</span><span lang="en">DataFlash <code>.bin</code> / <code>.log</code>, or ground station <code>.tlog</code> / <code>.rlog</code>.</span></div>
+          <div class="src"><b>INAV · Betaflight</b><span lang="fr">Blackbox brute <code>.TXT</code> / <code>.BBL</code> ou exportée en CSV.</span><span lang="en">Raw <code>.TXT</code> / <code>.BBL</code> blackbox or exported CSV.</span></div>
+          <div class="src"><b>DJI</b><span lang="fr">La vidéo MP4 elle-même, le <code>.SRT</code> ou le FlightRecord <code>.txt</code>.</span><span lang="en">The MP4 video itself, the <code>.SRT</code> or the FlightRecord <code>.txt</code>.</span></div>
+          <div class="src"><b>Walksnail · DJI WTFOS</b><span lang="fr">L'OSD des lunettes <code>.osd</code> et le <code>.SRT</code> de liaison.</span><span lang="en">Goggle OSD <code>.osd</code> and link <code>.SRT</code>.</span></div>
+          <div class="src"><b>GoPro</b><span lang="fr">Le GPS et les capteurs GPMF déjà dans ton MP4 (HERO5 et suivantes).</span><span lang="en">GPS and GPMF sensors already in your MP4 (HERO5 and later).</span></div>
+          <div class="src"><b>Insta360</b><span lang="fr">Le GPS et le gyroscope du <code>.insv</code> / <code>.mp4</code> original.</span><span lang="en">GPS and gyro from the original <code>.insv</code> / <code>.mp4</code>.</span></div>
+          <div class="src"><b>Garmin · Wahoo · Strava</b><span lang="fr">Activité <code>.FIT</code>, <code>.TCX</code> ou trace <code>.GPX</code>.</span><span lang="en"><code>.FIT</code>, <code>.TCX</code> activity or <code>.GPX</code> track.</span></div>
+          <div class="src"><b lang="fr">Chronos de circuit</b><b lang="en">Lap timers</b><span lang="fr">RaceChrono, AiM (CSV Race Studio), VBOX <code>.vbo</code>, Harry's LapTimer, TrackAddict, RaceBox, NMEA : un marqueur par tour.</span><span lang="en">RaceChrono, AiM (Race Studio CSV), VBOX <code>.vbo</code>, Harry's LapTimer, TrackAddict, RaceBox, NMEA: one marker per lap.</span></div>
+        </div>
+      </div>
+      <div class="marquee" aria-hidden="true">
+        <div class="marquee-track">
+          <span>EdgeTX CSV</span><span>ArduPilot .bin</span><span>MAVLink .tlog</span><span>INAV blackbox</span><span>DJI SRT</span><span>DJI djmd</span><span>Walksnail .osd</span><span>GoPro GPMF</span><span>Insta360 .insv</span><span>Garmin FIT</span><span>GPX</span><span>RaceChrono</span><span>AiM</span><span>VBOX .vbo</span><span>H.264 / H.265 / AV1</span><span>PNG alpha</span><span>9:16</span>
+          <span>EdgeTX CSV</span><span>ArduPilot .bin</span><span>MAVLink .tlog</span><span>INAV blackbox</span><span>DJI SRT</span><span>DJI djmd</span><span>Walksnail .osd</span><span>GoPro GPMF</span><span>Insta360 .insv</span><span>Garmin FIT</span><span>GPX</span><span>RaceChrono</span><span>AiM</span><span>VBOX .vbo</span><span>H.264 / H.265 / AV1</span><span>PNG alpha</span><span>9:16</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comment ça marche -->
+    <section id="comment" style="padding-top:0">
+      <div class="wrap how">
+        <div>
+          <p class="eyebrow"><span lang="fr">Comment ça marche</span><span lang="en">How it works</span></p>
+          <h2 lang="fr">Trois gestes. Aucun réglage obligatoire.</h2>
+          <h2 lang="en">Three steps. No setting required.</h2>
+          <p class="sub" lang="fr">Tout se passe dans ton navigateur : la vidéo et le log ne quittent jamais ton ordinateur. Optimisé pour Chrome et Edge sur ordinateur.</p>
+          <p class="sub" lang="en">Everything runs in your browser: the video and the log never leave your computer. Optimized for desktop Chrome and Edge.</p>
+          <a class="btn btn-ghost" href="guide.html"><span lang="fr">📖 Lire le guide complet</span><span lang="en">📖 Read the full guide</span></a>
+        </div>
+        <ol class="steps">
+          <li lang="fr"><b>Glisse la vidéo et le log</b><span>CSV EdgeTX, blackbox, SRT DJI, MP4 GoPro… La synchro se cale toute seule, au son des moteurs ou au mouvement de l'image.</span></li>
+          <li lang="en"><b>Drop the video and the log</b><span>EdgeTX CSV, blackbox, DJI SRT, GoPro MP4… Sync happens on its own, by motor sound or image motion.</span></li>
+          <li lang="fr"><b>Choisis tes jauges</b><span>Horizon, boussole, carte satellite, vol 3D, statistiques. Déplace-les dans l'aperçu, change police et couleurs.</span></li>
+          <li lang="en"><b>Pick your gauges</b><span>Horizon, compass, satellite map, 3D flight, statistics. Move them in the preview, change font and colors.</span></li>
+          <li lang="fr"><b>Exporte</b><span>Vidéo finale jusqu'en 4K, à la qualité de la source, ou séquence PNG transparente pour Premiere, DaVinci Resolve ou Final Cut. Les marqueurs deviennent des chapitres YouTube.</span></li>
+          <li lang="en"><b>Export</b><span>Final video up to 4K at source quality, or a transparent PNG sequence for Premiere, DaVinci Resolve or Final Cut. Markers become YouTube chapters.</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Atouts -->
+    <section id="atouts" style="padding-top:0">
+      <div class="wrap">
+        <p class="eyebrow"><span lang="fr">Pourquoi Telemetry Overlay</span><span lang="en">Why Telemetry Overlay</span></p>
+        <h2 lang="fr">Ce que les autres outils ne font pas.</h2>
+        <h2 lang="en">What other tools don't do.</h2>
+        <p class="sub" lang="fr">Comparé à DashWare, RaceRender, Garmin VIRB Edit et aux outils OSD FPV.</p>
+        <p class="sub" lang="en">Compared with DashWare, RaceRender, Garmin VIRB Edit and FPV OSD tools.</p>
+        <div class="perks">
+          <div class="perk"><b lang="fr">Logs FPV natifs</b><b lang="en">Native FPV logs</b><span lang="fr">EdgeTX, ArduPilot, INAV et DJI .txt lus sans conversion.</span><span lang="en">EdgeTX, ArduPilot, INAV and DJI .txt read with no conversion.</span></div>
+          <div class="perk"><b lang="fr">Synchro automatique</b><b lang="en">Automatic sync</b><span lang="fr">Par le son des moteurs ou le mouvement de l'image.</span><span lang="en">By motor sound or image motion.</span></div>
+          <div class="perk"><b lang="fr">OSD + jauges</b><b lang="en">OSD + gauges</b><span lang="fr">L'OSD des lunettes redessiné avec les jauges d'un log de vol.</span><span lang="en">Goggle OSD redrawn alongside flight log gauges.</span></div>
+          <div class="perk"><b lang="fr">Chapitres automatiques</b><b lang="en">Automatic chapters</b><span lang="fr">Décollage, altitude max, batterie faible, tours de circuit… repérés dans le log, exportés en chapitres YouTube ou marqueurs DaVinci Resolve / Premiere.</span><span lang="en">Takeoff, max altitude, low battery, track laps… found in the log, exported as YouTube chapters or DaVinci Resolve / Premiere markers.</span></div>
+          <div class="perk"><b lang="fr">Stabilisation gyro</b><b lang="en">Gyro stabilization</b><span lang="fr">L'image stabilisée par le gyroscope du log (en développement).</span><span lang="en">Footage stabilized with the log gyroscope (in development).</span></div>
+          <div class="perk"><b lang="fr">Gratuit, sans installation</b><b lang="en">Free, nothing to install</b><span lang="fr">Une page web, installable comme une appli. Pas de compte.</span><span lang="en">A web page, installable as an app. No account.</span></div>
+          <div class="perk"><b lang="fr">Projets réutilisables</b><b lang="en">Reusable projects</b><span lang="fr">Configuration de jauges exportable, projet .otproj à rouvrir plus tard.</span><span lang="en">Exportable gauge layout, .otproj project to reopen later.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final -->
+    <section class="final">
+      <div class="wrap">
+        <p class="eyebrow"><span lang="fr">Prêt à décoller</span><span lang="en">Ready for takeoff</span></p>
+        <h2 lang="fr">Pas d'achat. Pas d'abonnement. Pas de serveur.</h2>
+        <h2 lang="en">No purchase. No subscription. No server.</h2>
+        <p class="price">0 €<small lang="fr">Toutes les fonctions, sans limite de durée ni filigrane.</small><small lang="en">Every feature, no time limit, no watermark.</small></p>
+        <div class="cta">
+          <a class="btn btn-main" href="app.html"><span lang="fr">▶ Ouvrir Telemetry Overlay</span><span lang="en">▶ Open Telemetry Overlay</span></a>
+          <a class="btn btn-ghost" href="app.html#exemple"><span lang="fr">🎬 Essayer avec un exemple</span><span lang="en">🎬 Try with a sample</span></a>
+          <a class="btn btn-ghost" href="guide.html"><span lang="fr">📖 Lire le guide</span><span lang="en">📖 Read the guide</span></a>
+        </div>
+        <p class="donate"><span lang="fr">L'appli t'a plu ? Soutiens le projet :</span><span lang="en">Enjoying the app? Support the project:</span>
+          <a href="https://ko-fi.com/thibaultguillaume" target="_blank" rel="noopener">☕ Ko-fi</a>
+          <a href="https://paypal.me/ThiDom" target="_blank" rel="noopener">💙 PayPal</a>
+          <a href="https://github.com/sponsors/tguillaume02" target="_blank" rel="noopener">💖 GitHub Sponsors</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Telemetry Overlay · Thibault Guillaume</span>
+      <span>
+        <a href="guide.html">Guide</a> ·
+        <a href="https://github.com/tguillaume02/telemetry-overlay/issues/new" target="_blank" rel="noopener"><span lang="fr">Signaler un bug</span><span lang="en">Report a bug</span></a> ·
+        <a href="https://tguillaume02.github.io/" target="_blank" rel="noopener"><span lang="fr">Autres projets</span><span lang="en">Other projects</span></a>
+      </span>
+    </div>
+  </footer>
+
+  <script>
+    // Langue partagée avec l'application et le guide (même clé de stockage)
+    (() => {
+      const KEY = 'telemetry-overlay-lang';
+      const root = document.documentElement;
+      const set = id => {
+        root.dataset.lang = id;
+        root.lang = id;
+        try { localStorage.setItem(KEY, id); } catch { /* stockage indisponible */ }
+        document.querySelectorAll('[data-set-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.setLang === id)));
+        // Vidéo de présentation dans la langue de la page
+        const video = document.getElementById('presVideo');
+        const source = video && video.querySelector('source');
+        const src = id === 'fr'
+          ? 'presentation/telemetry-overlay-presentation-fr-25mb.mp4'
+          : 'presentation/telemetry-overlay-presentation-en-20mb.mp4';
+        if (source && source.getAttribute('src') !== src) {
+          source.setAttribute('src', src);
+          video.load();
+        }
+      };
+      let id;
+      try { id = localStorage.getItem(KEY); } catch { /* stockage indisponible */ }
+      if (id !== 'fr' && id !== 'en') id = /^fr\b/i.test(navigator.language || '') ? 'fr' : 'en';
+      document.querySelectorAll('[data-set-lang]').forEach(b => b.addEventListener('click', () => set(b.dataset.setLang)));
+      set(id);
+    })();
+  </script>
+  <!-- Statistiques de visite anonymes (js/accueil.js) ; ?nometrics pour ne pas être compté -->
+  <script type="module" src="js/accueil.js"></script>
+</body>
+</html>
