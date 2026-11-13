@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide · Telemetry Overlay</title>
+  <meta name="description" content="Toutes les fonctions de Telemetry Overlay sur une seule page : fichiers, synchronisation, jauges, coupes, son, export, projet.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Telemetry Overlay">
+  <meta property="og:title" content="Guide · Telemetry Overlay">
+  <meta property="og:description" content="Toutes les fonctions de Telemetry Overlay sur une seule page : fichiers, synchronisation, jauges, coupes, son, export, projet.">
+  <meta property="og:url" content="https://tguillaume02.github.io/telemetry-overlay/guide.html">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:image" content="https://tguillaume02.github.io/telemetry-overlay/logo/og-image.jpg?v=2">
+  <meta property="og:image:width" content="2400">
+  <meta property="og:image:height" content="1260">
+  <meta property="og:image:alt" content="Telemetry Overlay : la télémétrie de ton vol incrustée sur ta vidéo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://tguillaume02.github.io/telemetry-overlay/logo/og-image.jpg?v=2">
+  <link rel="icon" type="image/svg+xml" href="logo/telemetry-overlay-icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo/favicon-32.png">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --line: #2a313c;
+      --text: #e6edf3;
+      --muted: #8b98a8;
+      --accent: #38bdf8;
+      --ok: #4ade80;
+      --warn: #fbbf24;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html[data-lang="fr"] [lang="en"], html[data-lang="en"] [lang="fr"] { display: none !important; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.55 "Segoe UI", Roboto, system-ui, sans-serif;
+    }
+    a { color: var(--accent); }
+    kbd {
+      display: inline-block;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      background: var(--panel);
+      font: 12px/1.6 ui-monospace, Consolas, monospace;
+      white-space: nowrap;
+    }
+    code { font: 13px ui-monospace, Consolas, monospace; color: #c9d6e3; overflow-wrap: anywhere; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      padding: 10px 24px;
+      background: linear-gradient(90deg, #0b1626, var(--bg) 60%);
+      border-bottom: 2px solid transparent;
+      border-image: linear-gradient(90deg, #1e9bff, #3ddc5a 45%, var(--line) 75%) 1;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 600; }
+    .brand img { width: 34px; height: 34px; }
+    .brand small { color: var(--muted); font-weight: 400; }
+    .search {
+      flex: 1 1 220px;
+      max-width: 420px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+    }
+    .search:focus { outline: none; border-color: var(--accent); }
+    .actions { display: flex; gap: 8px; margin-left: auto; }
+    .actions a, .actions button {
+      padding: 3px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font: 12px inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .actions a:hover, .actions button:hover, .actions button[aria-pressed="true"] { border-color: var(--accent); color: var(--text); }
+    .layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 32px; max-width: 1180px; margin: 0 auto; padding: 24px; }
+    .toc { position: sticky; top: 76px; align-self: start; max-height: calc(100vh - 96px); overflow: auto; font-size: 14px; }
+    .toc ol { margin: 0; padding-left: 20px; }
+    .toc li { margin: 3px 0; }
+    .toc a { color: var(--muted); text-decoration: none; }
+    .toc a:hover { color: var(--text); }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    .lead { margin: 0 0 22px; color: var(--muted); }
+    section.chap { margin: 0 0 34px; scroll-margin-top: 80px; }
+    section.chap > h2 { margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); font-size: 21px; }
+    .card {
+      margin: 0 0 12px;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+    .card h3 { margin: 0 0 6px; font-size: 16px; color: var(--accent); }
+    .card p { margin: 6px 0; }
+    .card ul, .card ol { margin: 6px 0; padding-left: 22px; }
+    .card li { margin: 3px 0; }
+    .where { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: #0b2a3a; color: #9fdcfb; font-size: 12px; font-weight: 400; vertical-align: 2px; }
+    .tip { color: var(--muted); font-size: 14px; }
+    .tip::before { content: "💡 "; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; }
+    .steps { counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 0 0 12px; padding: 0; list-style: none; }
+    .steps li { counter-increment: s; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+    .steps li::before { content: counter(s); display: inline-grid; place-items: center; width: 24px; height: 24px; margin-right: 6px; border-radius: 50%; background: var(--accent); color: #04212f; font-weight: 700; }
+    .empty { color: var(--muted); }
+    figure.shot { margin: 12px 0 4px; }
+    figure.shot img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #000; }
+    figure.shot a { display: inline-block; cursor: zoom-in; }
+    figure.shot.side { float: right; width: 230px; margin: 0 0 10px 18px; }
+    figure.shot figcaption { margin-top: 5px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    figure.shot figcaption b { margin-right: 6px; color: #9fdcfb; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .trouble dt { margin-top: 10px; font-weight: 600; }
+    .trouble dt:first-child { margin-top: 0; }
+    .trouble dd { margin: 3px 0 0 0; color: var(--text); }
+    .support {
+      max-width: 1180px;
+      margin: 8px auto 36px;
+      padding: 0 24px;
+    }
+    .support p {
+      margin: 0;
+      padding: 12px 16px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .support a { color: var(--text); font-weight: 600; }
+    .support a:hover { color: var(--accent); }
+    .card::after { content: ""; display: block; clear: both; }
+    mark { background: #fbbf2455; color: inherit; border-radius: 2px; }
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+      .support { padding: 0 16px; }
+      .toc { position: static; max-height: none; }
+      .topbar { padding: 10px 16px; }
+      .actions { margin-left: 0; }
+      figure.shot.side { float: none; width: auto; max-width: 260px; margin: 8px 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><img src="logo/telemetry-overlay-icon.svg" alt="" width="34" height="34">
+      <span>Telemetry Overlay <small lang="fr">· Guide</small><small lang="en">· Guide</small></span></a>
+    <input class="search" id="search" type="search" autocomplete="off" placeholder="Rechercher une fonction…" data-ph-en="Search a feature…">
+    <div class="actions">
+      <a href="./"><span lang="fr">← Retour à l'application</span><span lang="en">← Back to the app</span></a>
+      <button type="button" data-set-lang="fr">FR</button>
+      <button type="button" data-set-lang="en">EN</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Sommaire">
+      <ol id="toc"></ol>
+    </nav>
+
+    <main id="content">
+      <h1 lang="fr">Toutes les fonctions, sur une page</h1>
+      <h1 lang="en">Every feature, on one page</h1>
+      <p class="lead" lang="fr">De l'import des fichiers à l'export de la vidéo. Le badge bleu indique où trouver chaque réglage dans l'application. Tout se passe dans le navigateur : la vidéo et le log ne quittent pas ta machine.</p>
+      <p class="lead" lang="en">From importing files to exporting the video. The blue badge tells you where each setting lives in the app. Everything runs in the browser: the video and the log never leave your computer.</p>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="start" data-title-fr="Démarrage rapide" data-title-en="Quick start">
+        <h2 lang="fr">Démarrage rapide</h2>
+        <h2 lang="en">Quick start</h2>
+        <ol class="steps" lang="fr">
+          <li><b>Fichiers</b> : dépose la vidéo et le log de vol n'importe où dans l'appli, ils sont rangés tout seuls (ou clique « Essayer avec un exemple (vidéo + OSD) » au milieu de l'aperçu vide).</li>
+          <li><b>Synchro</b> : souvent automatique (son des moteurs, ou télémétrie intégrée à la vidéo). Sinon, marque un instant reconnaissable.</li>
+          <li><b>Jauges</b> : choisis les données, glisse-les dans l'aperçu, règle leur apparence.</li>
+          <li><b>Couper</b> (sous la frise) puis <b>Export</b> : MP4 avec incrustation, ou séquence PNG transparente.</li>
+        </ol>
+        <ol class="steps" lang="en">
+          <li><b>Files</b>: drop the video and the flight log anywhere in the app, they are sorted automatically (or click “Try with a sample (video + OSD)” in the middle of the empty preview).</li>
+          <li><b>Sync</b>: often automatic (motor sound, or telemetry embedded in the video). Otherwise, mark a recognisable moment.</li>
+          <li><b>Gauges</b>: pick the data, drag them in the preview, tune their look.</li>
+          <li><b>Cut</b> (under the timeline), then <b>Export</b>: MP4 with the overlay, or a transparent PNG sequence.</li>
+        </ol>
+        <div lang="fr"><figure class="shot"><a href="captures/guide/interface-fr.png" target="_blank"><img src="captures/guide/interface-fr.png" alt="L'application avec la vidéo, les jauges, la frise et les coupes" loading="lazy"></a><figcaption><b>Vue d'ensemble</b>Menu des étapes et volet de réglages à gauche, aperçu avec les jauges, frise et coupes en dessous.</figcaption></figure></div>
+        <div lang="en"><figure class="shot"><a href="captures/guide/interface-en.png" target="_blank"><img src="captures/guide/interface-en.png" alt="The app with the video, gauges, timeline and cuts" loading="lazy"></a><figcaption><b>Overview</b>Step menu and settings panel on the left, preview with the gauges, timeline and cuts below.</figcaption></figure></div>
+        <p class="tip" lang="fr">Optimisé pour Chrome et Edge sur ordinateur (export rapide, calage sur l'image, écriture directe des longs exports). Firefox et Safari fonctionnent avec des limites.</p>
+        <p class="tip" lang="en">Optimised for desktop Chrome and Edge (fast export, image-motion sync, direct writing of long exports). Firefox and Safari work with limitations.</p>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="prepare" data-title-fr="Préparer ses logs" data-title-en="Preparing your logs">
+        <h2 lang="fr">Préparer ses logs (avant le vol)</h2>
+        <h2 lang="en">Preparing your logs (before the flight)</h2>
+        <p class="lead" lang="fr">Ce qui s'affiche dépend de ce que le log contient. Quelques réglages côté radio, contrôleur de vol ou caméra, faits une fois, donnent des jauges plus complètes, une synchro automatique et la stabilisation.</p>
+        <p class="lead" lang="en">What can be shown depends on what the log holds. A few settings on the radio, flight controller or camera, done once, give fuller gauges, automatic sync and stabilization.</p>
+
+        <div class="card" lang="fr">
+          <h3>Ce que chaque source apporte</h3>
+          <table>
+            <tr><th>Source</th><th>GPS</th><th>Attitude</th><th>Gaz / courant <small>(synchro son)</small></th><th>Gyro rapide <small>(stabilisation)</small></th></tr>
+            <tr><td>EdgeTX</td><td>si capteur</td><td>~5 Hz (CRSF)</td><td>✓</td><td>—</td></tr>
+            <tr><td>ArduPilot <code>.bin</code> / <code>.log</code></td><td>✓</td><td>✓</td><td>✓</td><td>✓ (IMU)</td></tr>
+            <tr><td>MAVLink <code>.tlog</code> / <code>.rlog</code></td><td>✓</td><td>4 à 10 Hz</td><td>✓</td><td>—</td></tr>
+            <tr><td>INAV / Betaflight blackbox</td><td>si GPS</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>DJI (MP4, SRT, journal)</td><td>✓</td><td>selon fichier</td><td>—</td><td>— (nacelle)</td></tr>
+            <tr><td>GoPro</td><td>si GPS activé</td><td>—</td><td>—</td><td>✓</td></tr>
+            <tr><td>Insta360</td><td>selon modèle</td><td>—</td><td>—</td><td>✓</td></tr>
+            <tr><td>Walksnail / WTFOS <code>.osd</code></td><td>si affiché</td><td>si affichée</td><td>si affiché</td><td>—</td></tr>
+            <tr><td>Garmin, Wahoo, GPX…</td><td>✓</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>Chronos de circuit (RaceChrono, AiM, VBOX…)</td><td>✓</td><td>inclinaison si fournie</td><td>gaz / régime si fournis</td><td>—</td></tr>
+          </table>
+          <p class="tip">Sans gaz ni courant, la synchro par le son est impossible : utilise « Caler sur le mouvement de l'image » ou le calage manuel. Sans attitude, l'horizon est estimé depuis le GPS (mention « EST. »).</p>
+        </div>
+        <div class="card" lang="en">
+          <h3>What each source provides</h3>
+          <table>
+            <tr><th>Source</th><th>GPS</th><th>Attitude</th><th>Throttle / current <small>(sound sync)</small></th><th>Fast gyro <small>(stabilization)</small></th></tr>
+            <tr><td>EdgeTX</td><td>if sensor</td><td>~5 Hz (CRSF)</td><td>✓</td><td>—</td></tr>
+            <tr><td>ArduPilot <code>.bin</code> / <code>.log</code></td><td>✓</td><td>✓</td><td>✓</td><td>✓ (IMU)</td></tr>
+            <tr><td>MAVLink <code>.tlog</code> / <code>.rlog</code></td><td>✓</td><td>4 to 10 Hz</td><td>✓</td><td>—</td></tr>
+            <tr><td>INAV / Betaflight blackbox</td><td>if GPS</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>DJI (MP4, SRT, flight record)</td><td>✓</td><td>depends on file</td><td>—</td><td>— (gimbal)</td></tr>
+            <tr><td>GoPro</td><td>if GPS on</td><td>—</td><td>—</td><td>✓</td></tr>
+            <tr><td>Insta360</td><td>depends on model</td><td>—</td><td>—</td><td>✓</td></tr>
+            <tr><td>Walksnail / WTFOS <code>.osd</code></td><td>if shown</td><td>if shown</td><td>if shown</td><td>—</td></tr>
+            <tr><td>Garmin, Wahoo, GPX…</td><td>✓</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td>Lap timers (RaceChrono, AiM, VBOX…)</td><td>✓</td><td>lean angle if provided</td><td>throttle / RPM if provided</td><td>—</td></tr>
+          </table>
+          <p class="tip">Without throttle or current, sound sync is impossible: use “Sync on image motion” or manual alignment. Without attitude, the horizon is estimated from GPS (marked “EST.”).</p>
+        </div>
+
+        <div class="card" lang="fr">
+          <h3>Réglages par source</h3>
+          <table>
+            <tr><th>Source</th><th>À faire</th></tr>
+            <tr><td>EdgeTX</td><td>Découvre les capteurs de télémétrie (Modèle › Télémétrie), puis ajoute une <b>fonction spéciale « Logs SD »</b> sur un inter, avec un intervalle court (0,1 à 0,2 s). Le <code>.csv</code> est écrit dans <code>LOGS/</code> sur la carte SD.</td></tr>
+            <tr><td>ArduPilot</td><td>Garde les messages <b>GPS, ATT, BAT, RCIN</b> et <b>IMU</b> dans <code>LOG_BITMASK</code> (IMU sert à la stabilisation : 50 Hz minimum). Récupère le <code>.bin</code> par Mission Planner / QGC ou sur la carte SD.</td></tr>
+            <tr><td>MAVLink</td><td>Mission Planner et QGroundControl enregistrent le <code>.tlog</code> tout seuls pendant la liaison. Ses heures suivent la réception radio : préfère le <code>.bin</code> quand tu l'as.</td></tr>
+            <tr><td>INAV / Betaflight</td><td>Active le <b>blackbox</b> (flash ou carte SD) et vide la mémoire avant de voler : une flash pleine n'enregistre plus. Télécharge le <code>.BBL</code> / <code>.TXT</code> brut par le Configurator (le CSV converti marche aussi).</td></tr>
+            <tr><td>DJI</td><td>Active les <b>sous-titres vidéo</b> dans les réglages caméra pour avoir le <code>.SRT</code>. Le journal <code>DJIFlightRecord_….txt</code> est dans le dossier de l'appli DJI de la radio ou du téléphone.</td></tr>
+            <tr><td>GoPro</td><td>Active le <b>GPS</b> dans les réglages de la caméra. Garde le <code>.MP4</code> d'origine (un export de montage perd la télémétrie).</td></tr>
+            <tr><td>Insta360</td><td>Garde le <code>.INSV</code> / <code>.MP4</code> sorti de la caméra, pas une vidéo recadrée exportée.</td></tr>
+            <tr><td>Walksnail / WTFOS</td><td>Le contrôleur de vol doit envoyer son OSD aux lunettes (<b>MSP DisplayPort</b> sur l'UART de l'émetteur vidéo) et des éléments OSD doivent être placés. Active l'enregistrement de l'OSD dans les lunettes ; garde la police <code>.png</code> de ton firmware.</td></tr>
+            <tr><td>AiM</td><td>Les sessions natives <code>.xrk</code> / <code>.drk</code> ne se lisent pas directement : dans <b>Race Studio</b>, exporte la session en <b>CSV</b> (Export → CSV). Les passages sur la ligne (<i>Beacon Markers</i>) donnent les tours.</td></tr>
+            <tr><td>RaceChrono, Harry's LapTimer, TrackAddict, RaceBox</td><td>Exporte la session en <b>CSV</b> (RaceChrono v2 ou v3) ou en <b>VBOX <code>.vbo</code></b> depuis l'appli. Un <code>.nmea</code> brut du GPS marche aussi.</td></tr>
+          </table>
+          <p class="tip">Pour la synchro automatique, filme avec le son et lance l'enregistrement vidéo <b>avant</b> le décollage : un coup de gaz au sol donne un repère net.</p>
+        </div>
+        <div class="card" lang="en">
+          <h3>Settings per source</h3>
+          <table>
+            <tr><th>Source</th><th>What to do</th></tr>
+            <tr><td>EdgeTX</td><td>Discover the telemetry sensors (Model › Telemetry), then add a <b>“SD Logs” special function</b> on a switch, with a short interval (0.1 to 0.2 s). The <code>.csv</code> is written to <code>LOGS/</code> on the SD card.</td></tr>
+            <tr><td>ArduPilot</td><td>Keep the <b>GPS, ATT, BAT, RCIN</b> and <b>IMU</b> messages in <code>LOG_BITMASK</code> (IMU is used for stabilization: 50 Hz minimum). Get the <code>.bin</code> through Mission Planner / QGC or from the SD card.</td></tr>
+            <tr><td>MAVLink</td><td>Mission Planner and QGroundControl record the <code>.tlog</code> on their own while connected. Its times follow the radio reception: prefer the <code>.bin</code> when you have it.</td></tr>
+            <tr><td>INAV / Betaflight</td><td>Enable the <b>blackbox</b> (flash or SD card) and erase it before flying: a full flash stops recording. Download the raw <code>.BBL</code> / <code>.TXT</code> with the Configurator (the converted CSV works too).</td></tr>
+            <tr><td>DJI</td><td>Turn on <b>video captions</b> in the camera settings to get the <code>.SRT</code>. The <code>DJIFlightRecord_….txt</code> record is in the DJI app folder on the remote or phone.</td></tr>
+            <tr><td>GoPro</td><td>Turn on <b>GPS</b> in the camera settings. Keep the original <code>.MP4</code> (an edited export loses the telemetry).</td></tr>
+            <tr><td>Insta360</td><td>Keep the <code>.INSV</code> / <code>.MP4</code> straight from the camera, not a reframed export.</td></tr>
+            <tr><td>Walksnail / WTFOS</td><td>The flight controller must send its OSD to the goggles (<b>MSP DisplayPort</b> on the video transmitter's UART) and OSD elements must be placed. Turn on OSD recording in the goggles; keep the <code>.png</code> font of your firmware.</td></tr>
+            <tr><td>AiM</td><td>Native <code>.xrk</code> / <code>.drk</code> sessions can't be read directly: in <b>Race Studio</b>, export the session to <b>CSV</b> (Export → CSV). Line crossings (<i>Beacon Markers</i>) give the laps.</td></tr>
+            <tr><td>RaceChrono, Harry's LapTimer, TrackAddict, RaceBox</td><td>Export the session as <b>CSV</b> (RaceChrono v2 or v3) or as <b>VBOX <code>.vbo</code></b> from the app. A raw GPS <code>.nmea</code> works too.</td></tr>
+          </table>
+          <p class="tip">For automatic sync, record with sound and start the video <b>before</b> take-off: a throttle blip on the ground gives a clear marker.</p>
+        </div>
+
+        <div class="card" lang="fr">
+          <h3>Où trouver les fichiers</h3>
+          <table>
+            <tr><th>Source</th><th>Emplacement</th></tr>
+            <tr><td>Walksnail Avatar</td><td>Carte SD des <b>lunettes</b>, dossier <code>DCIM/</code> : <code>AvatarXXXX.mp4</code> avec ses <code>.osd</code> et <code>.srt</code> du même nom. L'enregistrement du VTX ne contient pas de <code>.osd</code>.</td></tr>
+            <tr><td>DJI WTFOS</td><td>Carte SD des lunettes, <code>DCIM/100MEDIA/</code> : <code>DJIGxxxx.mp4</code> et <code>DJIGxxxx.osd</code>.</td></tr>
+            <tr><td>Drone DJI (vidéo)</td><td>Carte SD du drone, <code>DCIM/100MEDIA/</code> (ou <code>DCIM/DJI_001/</code>) : le <code>.SRT</code> porte le nom du <code>.MP4</code>.</td></tr>
+            <tr><td>Drone DJI (journal)</td><td>Android (DJI Fly) : <code>Android/data/dji.go.v5/files/FlightRecord/</code>. Radio à écran (DJI RC, RC 2, RC Pro) : même dossier, radio branchée en USB. iOS : app Fichiers › DJI Fly › <code>FlightRecords</code>. DJI GO 4 : <code>DJI/dji.go.v4/FlightRecord/</code>. Les journaux récents (v13+) sont chiffrés : il faut être en ligne pour les lire.</td></tr>
+            <tr><td>INAV / Betaflight</td><td>Flash : Configurator › onglet Blackbox › « Save flash to file », puis efface la flash. Carte SD du contrôleur : <code>LOGS/LOGxxxxx.TXT</code> / <code>.BFL</code> (ou mode stockage de masse depuis l'onglet Blackbox).</td></tr>
+            <tr><td>ArduPilot</td><td>Mission Planner : Données › DataFlash Logs › « Download DataFlash Log Via Mavlink » (ou outil de logs de QGC). Carte SD du contrôleur : <code>APM/LOGS/000000xx.BIN</code>.</td></tr>
+            <tr><td>MAVLink</td><td>Mission Planner : <code>Documents/Mission Planner/logs/</code>. QGroundControl : <code>Documents/QGroundControl/Telemetry/</code>.</td></tr>
+            <tr><td>EdgeTX</td><td>Carte SD de la radio, dossier <code>LOGS/</code>.</td></tr>
+          </table>
+        </div>
+        <div class="card" lang="en">
+          <h3>Where to find the files</h3>
+          <table>
+            <tr><th>Source</th><th>Location</th></tr>
+            <tr><td>Walksnail Avatar</td><td><b>Goggles</b> SD card, <code>DCIM/</code> folder: <code>AvatarXXXX.mp4</code> with its <code>.osd</code> and <code>.srt</code> of the same name. The VTX recording has no <code>.osd</code>.</td></tr>
+            <tr><td>DJI WTFOS</td><td>Goggles SD card, <code>DCIM/100MEDIA/</code>: <code>DJIGxxxx.mp4</code> and <code>DJIGxxxx.osd</code>.</td></tr>
+            <tr><td>DJI drone (video)</td><td>Drone SD card, <code>DCIM/100MEDIA/</code> (or <code>DCIM/DJI_001/</code>): the <code>.SRT</code> has the same name as the <code>.MP4</code>.</td></tr>
+            <tr><td>DJI drone (record)</td><td>Android (DJI Fly): <code>Android/data/dji.go.v5/files/FlightRecord/</code>. Screen remote (DJI RC, RC 2, RC Pro): same folder, remote plugged in over USB. iOS: Files app › DJI Fly › <code>FlightRecords</code>. DJI GO 4: <code>DJI/dji.go.v4/FlightRecord/</code>. Recent records (v13+) are encrypted: you must be online to read them.</td></tr>
+            <tr><td>INAV / Betaflight</td><td>Flash: Configurator › Blackbox tab › “Save flash to file”, then erase the flash. Flight controller SD card: <code>LOGS/LOGxxxxx.TXT</code> / <code>.BFL</code> (or mass storage mode from the Blackbox tab).</td></tr>
+            <tr><td>ArduPilot</td><td>Mission Planner: Data › DataFlash Logs › “Download DataFlash Log Via Mavlink” (or the QGC log tool). Flight controller SD card: <code>APM/LOGS/000000xx.BIN</code>.</td></tr>
+            <tr><td>MAVLink</td><td>Mission Planner: <code>Documents/Mission Planner/logs/</code>. QGroundControl: <code>Documents/QGroundControl/Telemetry/</code>.</td></tr>
+            <tr><td>EdgeTX</td><td>Radio SD card, <code>LOGS/</code> folder.</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="files"data-title-fr="Fichiers (upload)" data-title-en="Files (upload)">
+        <h2 lang="fr">Fichiers (upload)</h2>
+        <h2 lang="en">Files (upload)</h2>
+
+        <div class="card" lang="fr">
+          <h3>Vidéo du vol <span class="where">1. Fichiers</span></h3>
+          <figure class="shot side"><a href="captures/guide/fichiers-fr.png" target="_blank"><img src="captures/guide/fichiers-fr.png" alt="Section Fichiers avec une vidéo, un log et un son ajouté" loading="lazy"></a><figcaption><b>1. Fichiers</b>Une vidéo, un log et un son ajouté avec sa forme d'onde.</figcaption></figure>
+          <ul>
+            <li>Clic ou glisser-déposer : MP4, MOV, AVI, MKV, WebM, LRF (aperçu DJI basse résolution), INSV / LRV (Insta360).</li>
+            <li><b>Déposer n'importe où</b> : des fichiers lâchés sur l'appli sont rangés d'après leur extension — vidéo, log de vol, enregistrement OSD, police OSD (<code>.png</code>), son ou projet <code>.otproj</code>. Un fichier non reconnu est signalé.</li>
+            <li><b>Plusieurs vidéos</b> d'un coup, ou « ＋ Ajouter une vidéo à la suite » : elles sont lues bout à bout comme un seul clip (enregistrement découpé par la caméra).</li>
+            <li><b>✕ Retirer la vidéo</b> : revient à l'aperçu du log seul ; le log, les jauges et les sons ajoutés sont gardés (les coupes et marqueurs de la vidéo sont retirés).</li>
+            <li>Sans vidéo, l'aperçu s'affiche sur fond neutre : clique dans la courbe du log pour choisir l'instant.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Flight video <span class="where">1. Files</span></h3>
+          <figure class="shot side"><a href="captures/guide/fichiers-en.png" target="_blank"><img src="captures/guide/fichiers-en.png" alt="Files section with a video, a log and an added sound" loading="lazy"></a><figcaption><b>1. Files</b>A video, a log and an added sound with its waveform.</figcaption></figure>
+          <ul>
+            <li>Click or drag &amp; drop: MP4, MOV, AVI, MKV, WebM, LRF (DJI low-res preview), INSV / LRV (Insta360).</li>
+            <li><b>Drop anywhere</b>: files dropped on the app are sorted by extension — video, flight log, OSD recording, OSD font (<code>.png</code>), audio or <code>.otproj</code> project. An unrecognized file is reported.</li>
+            <li><b>Several videos</b> at once, or “＋ Add a video after this one”: they play back to back as a single clip (recording split by the camera).</li>
+            <li><b>✕ Remove the video</b>: goes back to the log-only preview; the log, gauges and added sounds are kept (the video's cuts and markers are removed).</li>
+            <li>Without a video, the preview shows on a neutral background: click the log chart to pick the moment.</li>
+          </ul>
+        </div>
+
+        <div class="card" lang="fr">
+          <h3>Log de vol <span class="where">1. Fichiers</span></h3>
+          <table>
+            <tr><th>Source</th><th>Fichier</th><th>Synchro</th></tr>
+            <tr><td>EdgeTX</td><td><code>.csv</code> du dossier LOGS</td><td>à faire</td></tr>
+            <tr><td>ArduPilot</td><td><code>.bin</code> DataFlash ou <code>.log</code></td><td>à faire</td></tr>
+            <tr><td>ArduPilot, PX4, INAV (MAVLink)</td><td>télémétrie de la station sol <code>.tlog</code> / <code>.rlog</code></td><td>à faire</td></tr>
+            <tr><td>INAV / Betaflight</td><td>blackbox brut <code>.TXT</code> / <code>.BBL</code> / <code>.BFL</code> ou <code>.csv</code></td><td>à faire</td></tr>
+            <tr><td>DJI</td><td>vidéo <code>.MP4</code>, <code>.SRT</code>, journal <code>DJIFlightRecord_….txt</code> ou son <code>.csv</code></td><td>auto (MP4, SRT)</td></tr>
+            <tr><td>GoPro</td><td>la vidéo <code>.MP4</code> elle-même</td><td>auto</td></tr>
+            <tr><td>Insta360 <i>(expérimental)</i></td><td>vidéo <code>.INSV</code> / <code>.MP4</code> d'origine</td><td>auto</td></tr>
+            <tr><td>Walksnail / DJI WTFOS <i>(expérimental)</i></td><td><code>.osd</code>, <code>.srt</code> Walksnail</td><td>auto</td></tr>
+            <tr><td>Garmin, Wahoo, Strava…</td><td><code>.FIT</code>, <code>.TCX</code>, <code>.GPX</code></td><td>à faire</td></tr>
+            <tr><td>Chronos de circuit</td><td>RaceChrono <code>.csv</code>, AiM <code>.csv</code> (Race Studio), Racelogic VBOX <code>.vbo</code>, <code>.nmea</code>, CSV Harry's LapTimer / TrackAddict / RaceBox, Garmin Catalyst <code>.FIT</code></td><td>à faire</td></tr>
+          </table>
+          <ul>
+            <li>Vidéo DJI / GoPro / Insta360 sans autre log : la télémétrie intégrée est lue automatiquement.</li>
+            <li><b>Chronos de circuit</b> : vitesse, GPS, angle d'inclinaison, accélérations longitudinale / latérale, régime, gaz, températures et la donnée <b>Tour</b> (tour en cours) ; chaque passage sur la ligne devient un <a href="#cuts">marqueur proposé</a>.</li>
+            <li>Un blackbox contient souvent <b>plusieurs vols</b> (un par armement) : le plus gros est choisi, une liste permet d'en prendre un autre.</li>
+            <li>« ＋ Ajouter un log à la suite » : colle un autre log derrière (log coupé en plusieurs fichiers, vol suivant). Chaque log devient une <a href="#cuts">partie</a> recalable, repérée par une bande de couleur sur la courbe.</li>
+            <li><b>✕ Retirer le log</b> (un seul log chargé) : la vidéo, ses coupes et la disposition des jauges sont gardées.</li>
+            <li>« Essayer avec un exemple (vidéo + OSD) », au milieu de l'aperçu tant que rien n'est chargé, charge une minute de vol filmée avec des lunettes Walksnail Avatar et son OSD INAV.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Flight log <span class="where">1. Files</span></h3>
+          <table>
+            <tr><th>Source</th><th>File</th><th>Sync</th></tr>
+            <tr><td>EdgeTX</td><td><code>.csv</code> from the LOGS folder</td><td>manual</td></tr>
+            <tr><td>ArduPilot</td><td>DataFlash <code>.bin</code> or <code>.log</code></td><td>manual</td></tr>
+            <tr><td>ArduPilot, PX4, INAV (MAVLink)</td><td>ground station telemetry <code>.tlog</code> / <code>.rlog</code></td><td>manual</td></tr>
+            <tr><td>INAV / Betaflight</td><td>raw blackbox <code>.TXT</code> / <code>.BBL</code> / <code>.BFL</code> or <code>.csv</code></td><td>manual</td></tr>
+            <tr><td>DJI</td><td><code>.MP4</code> video, <code>.SRT</code>, <code>DJIFlightRecord_….txt</code> record or its <code>.csv</code></td><td>auto (MP4, SRT)</td></tr>
+            <tr><td>GoPro</td><td>the <code>.MP4</code> video itself</td><td>auto</td></tr>
+            <tr><td>Insta360 <i>(experimental)</i></td><td>original <code>.INSV</code> / <code>.MP4</code></td><td>auto</td></tr>
+            <tr><td>Walksnail / DJI WTFOS <i>(experimental)</i></td><td><code>.osd</code>, Walksnail <code>.srt</code></td><td>auto</td></tr>
+            <tr><td>Garmin, Wahoo, Strava…</td><td><code>.FIT</code>, <code>.TCX</code>, <code>.GPX</code></td><td>manual</td></tr>
+            <tr><td>Lap timers</td><td>RaceChrono <code>.csv</code>, AiM <code>.csv</code> (Race Studio), Racelogic VBOX <code>.vbo</code>, <code>.nmea</code>, Harry's LapTimer / TrackAddict / RaceBox CSV, Garmin Catalyst <code>.FIT</code></td><td>manual</td></tr>
+          </table>
+          <ul>
+            <li>DJI / GoPro / Insta360 video with no other log: the embedded telemetry is read automatically.</li>
+            <li><b>Lap timers</b>: speed, GPS, lean angle, longitudinal / lateral acceleration, RPM, throttle, temperatures and the <b>Lap</b> field (current lap); each line crossing becomes a <a href="#cuts">suggested marker</a>.</li>
+            <li>A blackbox often holds <b>several flights</b> (one per arming): the largest is picked, a list lets you choose another.</li>
+            <li>“＋ Add a log after this one”: appends another log (log split into several files, next flight). Each log becomes a realignable <a href="#cuts">part</a>, shown by a colour band on the chart.</li>
+            <li><b>✕ Remove the log</b> (single log loaded): the video, its cuts and the gauge layout are kept.</li>
+            <li>“Try with a sample (video + OSD)”, in the middle of the preview while nothing is loaded, loads one minute of flight filmed with Walksnail Avatar goggles and its INAV OSD.</li>
+          </ul>
+        </div>
+
+        <div class="card" lang="fr">
+          <h3>Son ajouté (musique, commentaire) <span class="where">1. Fichiers</span></h3>
+          <ul>
+            <li>Un ou plusieurs fichiers : MP3, WAV, M4A / AAC, OGG / Opus, FLAC.</li>
+            <li>Chaque piste a un <b>départ</b> (s), un <b>volume</b> (0 à 200 %), et se retire avec ✕. « ⤓ Ici » la cale sur l'instant affiché.</li>
+            <li>Le départ est compté sur la <b>vidéo exportée</b> (après les coupes) : la musique continue sans saut aux raccords.</li>
+            <li>Glisse la piste dans son couloir de la frise pour la déplacer.</li>
+            <li>Forme d'onde : clic = point d'écoute (« ▶ Écouter »), glisser = sélection à <b>couper</b> ou à <b>garder seule</b> ; « ↺ » annule les coupes. Voir aussi <a href="#cuts">Couper le son</a>.</li>
+            <li>Mixé avec le son d'origine en une seule piste audio ; volume réduit automatiquement si le mix sature.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Added sound (music, commentary) <span class="where">1. Files</span></h3>
+          <ul>
+            <li>One or more files: MP3, WAV, M4A / AAC, OGG / Opus, FLAC.</li>
+            <li>Each track has a <b>start</b> (s), a <b>volume</b> (0 to 200 %), and is removed with ✕. “⤓ Here” aligns it on the current moment.</li>
+            <li>The start counts on the <b>exported video</b> (after cuts): the music keeps going across the joins.</li>
+            <li>Drag the track in its lane of the timeline to move it.</li>
+            <li>Waveform: click = listening point (“▶ Listen”), drag = selection to <b>cut</b> or <b>keep alone</b>; “↺” undoes the cuts. See also <a href="#cuts">Cutting the sound</a>.</li>
+            <li>Mixed with the original sound into a single audio track; volume lowered automatically if the mix clips.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="sync" data-title-fr="Synchronisation" data-title-en="Synchronisation">
+        <h2 lang="fr">Synchronisation vidéo / log</h2>
+        <h2 lang="en">Video / log synchronisation</h2>
+        <div class="card" lang="fr">
+          <h3>Calage automatique <span class="where">2. Synchro</span></h3>
+          <ul>
+            <li><b>Synchro automatique (son des moteurs, sinon mouvement de l'image)</b> : cochée par défaut, compare le bruit des moteurs dans le son de la vidéo à la courbe des gaz. Si la vidéo n'a pas de son exploitable (pas de son, son muet, rien de net) ou que le log n'a ni gaz ni courant, elle passe d'elle-même au mouvement de l'image.</li>
+            <li><b>Caler sur le son des moteurs</b> : relance cette comparaison à la demande.</li>
+            <li><b>Caler sur le mouvement de l'image</b> : compare les rotations visibles (roulis, tangage, lacet) à celles du log. Utile sans son exploitable (moteur thermique, vent). Analyse au plus 2 min, demande Chrome / Edge.</li>
+            <li><b>Vérifier le calage sur toute la vidéo</b> : une fois calée, mesure le décalage tout au long de la vidéo. Certaines caméras perdent quelques secondes de vol en cours d'enregistrement (souvent marquées par une image blanche ou noire) ou entre deux fichiers : le log prend alors de l'avance. L'application liste ces sauts et propose de couper le vol non filmé du log (Ctrl+Z pour annuler). Quelques minutes pour une heure de vidéo, Chrome / Edge.</li>
+            <li>Vidéo DJI MP4 / SRT, GoPro, Insta360, OSD lunettes : synchro faite d'office.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Automatic alignment <span class="where">2. Sync</span></h3>
+          <ul>
+            <li><b>Auto sync (motor sound, otherwise image motion)</b>: on by default, compares the motor noise in the video's sound to the throttle curve. If the video has no usable sound (no sound, silent track, no clear match) or the log has neither throttle nor current, it switches to image motion by itself.</li>
+            <li><b>Sync on motor sound</b>: runs that comparison on demand.</li>
+            <li><b>Sync on image motion</b>: compares the visible rotations (roll, pitch, yaw) to the log. Useful without usable sound (combustion engine, wind). Analyses at most 2 min, needs Chrome / Edge.</li>
+            <li><b>Check sync over the whole video</b>: once synced, measures the offset all along the video. Some cameras lose a few seconds of flight while recording (often marked by a white or black frame) or between two files: the log then gets ahead. The app lists these jumps and offers to cut the unrecorded flight from the log (Ctrl+Z to undo). A few minutes for an hour of video, Chrome / Edge.</li>
+            <li>DJI MP4 / SRT, GoPro, Insta360, goggle OSD: synced out of the box.</li>
+          </ul>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Calage manuel <span class="where">2. Synchro</span></h3>
+          <ol>
+            <li>Mets la vidéo sur un instant reconnaissable (décollage, coup de gaz) → <b>Marquer l'instant vidéo</b>.</li>
+            <li>Clique sur le même instant dans la courbe du log, ou <b>Caler sur le décollage</b> (détection automatique). Si la vidéo commence en vol, mets-la sur le posé et clique sur <b>Caler sur l'atterrissage</b>.</li>
+            <li>Affine le <b>décalage</b> avec ±0,01 / ±0,1 / ±1 s ou en le tapant.</li>
+          </ol>
+          <p class="tip">La courbe sous la vidéo peut afficher n'importe quelle donnée du log, en vue « Aligné sur la frise », « Log complet » ou « Vidéo montée ».</p>
+          <figure class="shot"><a href="captures/guide/synchro-fr.png" target="_blank"><img src="captures/guide/synchro-fr.png" alt="Section Synchronisation et courbe du log" loading="lazy"></a><figcaption><b>2. Synchro</b>Décalage, boutons de calage et courbe du log sous la vidéo.</figcaption></figure>
+        </div>
+        <div class="card" lang="en">
+          <h3>Manual alignment <span class="where">2. Sync</span></h3>
+          <ol>
+            <li>Put the video on a recognisable moment (take-off, throttle punch) → <b>Mark video time</b>.</li>
+            <li>Click the same moment in the log chart, or <b>Snap to takeoff</b> (automatic detection). If the video starts in flight, move it to the touchdown and click <b>Snap to landing</b>.</li>
+            <li>Fine-tune the <b>offset</b> with ±0.01 / ±0.1 / ±1 s or by typing it.</li>
+          </ol>
+          <p class="tip">The chart under the video can show any log field, in “Aligned with timeline”, “Full log” or “Edited video” view.</p>
+          <figure class="shot"><a href="captures/guide/synchro-en.png" target="_blank"><img src="captures/guide/synchro-en.png" alt="Sync section and log chart" loading="lazy"></a><figcaption><b>2. Sync</b>Offset, alignment buttons and the log chart under the video.</figcaption></figure>
+        </div>
+              <div class="card" lang="fr">
+          <h3>Stabilisation par le gyroscope <span class="where">2. Synchro</span></h3>
+          <p>En développement. Demande un log avec un gyroscope rapide : blackbox INAV / Betaflight brute, ArduPilot .bin / .log, télémétrie GoPro ou Insta360.</p>
+          <ol>
+            <li>Synchronise la vidéo et le log (à une seconde près suffit).</li>
+            <li>Coche <b>Stabiliser la vidéo avec le gyroscope du log</b> : la calibration compare le mouvement de l'image au gyroscope (montage de la caméra, focale, objectif, rolling shutter, recalage à la milliseconde).</li>
+            <li>Règle le <b>Lissage</b> (image plus calme ou qui suit mieux les virages) et l'<b>Agrandissement</b> (bords cachés).</li>
+          </ol>
+          <p class="tip">La stabilisation garde la synchro de sa calibration : tu peux ensuite retoucher celle des jauges. Elle s'applique à l'aperçu et à l'export rapide, et elle est enregistrée dans le projet.</p>
+        </div>
+        <div class="card" lang="en">
+          <h3>Gyro stabilization <span class="where">2. Sync</span></h3>
+          <p>In development. Needs a log with a fast gyroscope: raw INAV / Betaflight blackbox, ArduPilot .bin / .log, GoPro or Insta360 telemetry.</p>
+          <ol>
+            <li>Sync the video and the log (within a second is enough).</li>
+            <li>Tick <b>Stabilize the video with the log gyroscope</b>: the calibration compares the image motion with the gyroscope (camera mounting, focal length, lens, rolling shutter, millisecond alignment).</li>
+            <li>Set <b>Smoothing</b> (calmer image, or one that follows turns more closely) and <b>Zoom</b> (hidden edges).</li>
+          </ol>
+          <p class="tip">Stabilization keeps the sync of its calibration: you can then adjust the gauge sync. It applies to the preview and the fast export, and it is saved in the project.</p>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="gauges" data-title-fr="Jauges" data-title-en="Gauges">
+        <h2 lang="fr">Jauges</h2>
+        <h2 lang="en">Gauges</h2>
+        <div class="card" lang="fr">
+          <h3>Ajouter et choisir l'affichage <span class="where">3. Jauges</span></h3>
+          <ul>
+            <li>« Ajouter une jauge » : recherche une donnée (<kbd>Entrée</kbd> ajoute le premier résultat).</li>
+            <li>Types d'affichage : <b>Valeur</b>, <b>Graphique</b>, <b>Cadran</b>, <b>Barre</b>, <b>Cadran à aiguille</b>, <b>Échelle verticale</b> (défile derrière la valeur, avec tendance).</li>
+            <li>Position : 8 zones prédéfinies, ou « Libre » en glissant la jauge dans l'aperçu. L'ordre de la liste = ordre d'empilement dans une zone.</li>
+            <li><b>Réglages de la donnée</b> : multiplier / ajouter (conversion), unité, décimales, lissage, plage min / max, seuils de couleur, alarme au-dessus / en dessous d'un seuil.</li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/jauges-fr.png" target="_blank"><img src="captures/guide/jauges-fr.png" alt="Liste des jauges et aperçu" loading="lazy"></a><figcaption><b>3. Jauges</b>La liste des jauges et leur rendu dans l'aperçu.</figcaption></figure>
+        </div>
+        <div class="card" lang="en">
+          <h3>Adding gauges and choosing the display <span class="where">3. Gauges</span></h3>
+          <ul>
+            <li>“Add a gauge”: search a field (<kbd>Enter</kbd> adds the first result).</li>
+            <li>Display types: <b>Value</b>, <b>Graph</b>, <b>Dial</b>, <b>Bar</b>, <b>Needle gauge</b>, <b>Vertical tape</b> (scrolls behind the value, with trend).</li>
+            <li>Position: 8 preset zones, or “Free” by dragging the gauge in the preview. List order = stacking order inside a zone.</li>
+            <li><b>Data settings</b>: multiply / add (conversion), unit, decimals, smoothing, min / max range, colour thresholds, alarm above / below a threshold.</li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/jauges-en.png" target="_blank"><img src="captures/guide/jauges-en.png" alt="Gauge list and preview" loading="lazy"></a><figcaption><b>3. Gauges</b>The gauge list and how it renders in the preview.</figcaption></figure>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Jauges spéciales <span class="where">3. Jauges › Spéciales</span></h3>
+          <ul>
+            <li><b>Chrono de vol</b>, <b>Statistiques du vol</b> (vitesse / altitude / distance max, distance parcourue).</li>
+            <li><b>Titre du chapitre</b> : le nom des <a href="#cuts">marqueurs</a> en fondu dans la vidéo.</li>
+            <li><b>Panneaux de valeurs</b> (3) : plusieurs données dans un cadre, lignes ajoutées / retirées / réordonnées dans 🎨, titre optionnel.</li>
+            <li><b>Horizon artificiel</b> rond ou rectangulaire (attitude estimée depuis le GPS si pas de gyro, mention « EST. »).</li>
+            <li><b>Compas</b> (bandeau de cap, ou route sol), <b>Manches</b>, <b>Carte de vol 3D</b> (sur <a href="#map3d">relief réel</a>, ou en plein écran).</li>
+            <li><b>Mini-carte GPS</b> : fond satellite (Esri, Internet requis), tout le vol ou suivi de l'aéronef avec zoom, nord ou cap en haut. <b>Vue agrandie</b> déclenchée par n'importe quelle donnée (inter de la radio, voie RC…) au-dessus / en dessous d'un seuil, avec taille, contenu et durée d'animation réglables.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Special gauges <span class="where">3. Gauges › Special</span></h3>
+          <ul>
+            <li><b>Flight timer</b>, <b>Flight statistics</b> (max speed / altitude / distance, distance travelled).</li>
+            <li><b>Chapter title</b>: the name of the <a href="#cuts">markers</a> fading in on the video.</li>
+            <li><b>Value panels</b> (3): several fields in one frame, rows added / removed / reordered in 🎨, optional title.</li>
+            <li><b>Artificial horizon</b>, round or rectangular (attitude estimated from GPS without a gyro, marked “EST.”).</li>
+            <li><b>Compass</b> (heading tape, or ground track), <b>Sticks</b>, <b>3D flight map</b> (on <a href="#map3d">real terrain</a>, or full screen).</li>
+            <li><b>GPS mini-map</b>: satellite background (Esri, needs Internet), whole flight or follow the aircraft with zoom, north or heading up. <b>Expanded view</b> triggered by any field (radio switch, RC channel…) above / below a threshold, with adjustable size, content and animation duration.</li>
+          </ul>
+        </div>
+        <span id="map3d" style="display:block;scroll-margin-top:80px"></span>
+        <div class="card" lang="fr">
+          <h3>Carte de vol 3D sur relief réel <span class="where">3. Jauges › Carte de vol 3D</span></h3>
+          <ul>
+            <li><b>Fond</b> : « Plat (quadrillage) » ou « <b>Relief réel + photo satellite</b> » — le vol est dessiné sur le vrai relief (altitudes AWS Terrain Tiles) drapé de la photo satellite (Esri), rendu en WebGL.</li>
+            <li><b>Vue</b> fixe (depuis le sud-ouest) ou tournante ; <b>exagération du relief</b> ×1 à ×3.</li>
+            <li>La trace est posée au sol au point de décollage, que l'altitude du log soit relative ou absolue.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>3D flight map on real terrain <span class="where">3. Gauges › 3D flight map</span></h3>
+          <ul>
+            <li><b>Background</b>: “Flat (grid)” or “<b>Real terrain + satellite photo</b>” — the flight is drawn over the real relief (AWS Terrain Tiles elevations) draped with the satellite photo (Esri), rendered in WebGL.</li>
+            <li><b>View</b> fixed (from the south-west) or rotating; <b>terrain exaggeration</b> ×1 to ×3.</li>
+            <li>The track is set on the ground at the takeoff point, whether the log altitude is relative or absolute.</li>
+          </ul>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Vue 3D plein écran à la place de la vidéo <span class="where">3. Jauges › Carte de vol 3D</span></h3>
+          <ul>
+            <li><b>Plein écran</b> : « Jamais », « Toujours », ou « <b>Selon une donnée du log</b> » (un inter de la radio, une voie RC…) au-dessus / en dessous d'un seuil, avec une durée de transition (fondu, 0 à 3 s).</li>
+            <li>Une <b>caméra suit l'aéronef par l'arrière</b> — proche (60 m), moyenne (150 m) ou lointaine (400 m) — au-dessus du relief réel qui s'étend jusqu'à un horizon brumeux sous un ciel.</li>
+            <li>Un rideau descend sous la partie déjà volée. <b>Couleur du rideau</b> : « Dégradé jaune → rouge » (du début du vol à l'instant présent, par défaut) ou « Couleur des jauges ».</li>
+            <li>Les autres jauges restent par-dessus ; la jauge 3D elle-même est masquée pendant le plein écran.</li>
+          </ul>
+          <p class="tip">Relief, photo satellite et fond de la mini-carte sont désactivés par défaut : les activer télécharge les tuiles de la zone du vol, ces serveurs apprennent donc où tu as volé (rien d'autre n'est envoyé). Connexion Internet nécessaire ; les tuiles sont chargées avant l'export, séquence PNG comprise.</p>
+        </div>
+        <div class="card" lang="en">
+          <h3>Full-screen 3D view instead of the video <span class="where">3. Gauges › 3D flight map</span></h3>
+          <ul>
+            <li><b>Full screen</b>: “Never”, “Always”, or “<b>Driven by a log value</b>” (a radio switch, an RC channel…) above / below a threshold, with a transition duration (fade, 0 to 3 s).</li>
+            <li>A <b>camera follows the aircraft from behind</b> — close (60 m), medium (150 m) or far (400 m) — over the real terrain stretching to a hazy horizon under a sky.</li>
+            <li>A curtain hangs under the part already flown. <b>Curtain color</b>: “Yellow → red gradient” (from the start of the flight to now, default) or “Gauge color”.</li>
+            <li>The other gauges stay on top; the 3D gauge itself is hidden while the view is full screen.</li>
+          </ul>
+          <p class="tip">Terrain, satellite photo and the mini-map background are off by default: enabling them downloads the tiles of the flight area, so these servers learn where you flew (nothing else is sent). Needs an Internet connection; tiles are loaded before the export, PNG sequence included.</p>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Placer et régler dans l'aperçu <span class="where">Aperçu</span></h3>
+          <ul>
+            <li><b>Glisser</b> une jauge pour la déplacer (aimantation sur marges et centre ; <kbd>Alt</kbd> pour la désactiver). ⟲ la remet à sa place.</li>
+            <li><b>Molette</b> sur une jauge : la redimensionner.</li>
+            <li><b>Clic</b> sur une jauge (ou 🎨 dans la liste) : son apparence personnalisée — nom, position du nom, police, fond, opacité, couleurs, durée du graphique, taille. « Appliquer à toutes les jauges » recopie le réglage.</li>
+            <li><b>Masquer / flouter selon une valeur</b> : cache ou floute la jauge quand une donnée (la sienne ou une autre, ex. un inter de la radio) passe au-dessus / en dessous d'un seuil, avec une transition réglable.</li>
+            <li><b>Plein écran</b> (bouton à côté du temps, ou touche <kbd>F</kbd>) : l'aperçu occupe tout l'écran avec une petite barre lecture / temps ; <kbd>Échap</kbd> ou <kbd>F</kbd> pour en sortir.</li>
+            <li><b>Barre de séparation</b> entre l'aperçu et la frise : glisse-la pour agrandir ou réduire la partie du dessous (double-clic : taille normale). La taille est mémorisée.</li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/jauge-apparence-fr.png" target="_blank"><img src="captures/guide/jauge-apparence-fr.png" alt="Réglages d'une jauge après un clic dans l'aperçu" loading="lazy"></a><figcaption><b>Aperçu</b>Un clic sur une jauge ouvre son apparence personnalisée.</figcaption></figure>
+        </div>
+        <div class="card" lang="en">
+          <h3>Placing and tuning in the preview <span class="where">Preview</span></h3>
+          <ul>
+            <li><b>Drag</b> a gauge to move it (snaps to margins and centre; <kbd>Alt</kbd> to disable). ⟲ puts it back.</li>
+            <li><b>Mouse wheel</b> on a gauge: resize it.</li>
+            <li><b>Click</b> a gauge (or 🎨 in the list): its custom look — name, name position, font, background, opacity, colours, graph duration, size. “Apply to all gauges” copies the setting.</li>
+            <li><b>Hide / blur based on a value</b>: hides or blurs the gauge when a field (its own or another, e.g. a radio switch) goes above / below a threshold, with an adjustable transition.</li>
+            <li><b>Full screen</b> (button next to the time, or <kbd>F</kbd> key): the preview fills the screen with a small play / time bar; <kbd>Esc</kbd> or <kbd>F</kbd> to leave.</li>
+            <li><b>Split bar</b> between the preview and the timeline: drag it to enlarge or shrink the lower part (double-click: normal size). The size is remembered.</li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/jauge-apparence-en.png" target="_blank"><img src="captures/guide/jauge-apparence-en.png" alt="Settings of a gauge after a click in the preview" loading="lazy"></a><figcaption><b>Preview</b>Clicking a gauge opens its custom look.</figcaption></figure>
+        </div>
+        <div class="card" id="multi" lang="fr">
+          <h3>Sélection de plusieurs jauges et alignement <span class="where">Aperçu</span></h3>
+          <ul>
+            <li><kbd>Ctrl</kbd> ou <kbd>Maj</kbd> + clic : ajoute / retire une jauge de la sélection.</li>
+            <li>Tracer un <b>cadre</b> dans le vide sélectionne les jauges qu'il touche (avec <kbd>Ctrl</kbd> / <kbd>Maj</kbd>, complète la sélection). <kbd>Échap</kbd> vide la sélection.</li>
+            <li>Glisser une jauge sélectionnée déplace tout le groupe.</li>
+            <li>La barre d'outils qui apparaît (déplaçable par sa poignée, double-clic pour la remettre en haut) :
+              <ul>
+                <li><b>Aligner</b> : gauche, centre horizontal, droite, haut, centre vertical, bas ;</li>
+                <li><b>Répartir</b> horizontalement / verticalement (espacement égal, 3 jauges ou plus) ;</li>
+                <li><b>Disposer</b> en <b>Ligne</b> ou en <b>Colonne</b> ;</li>
+                <li><b>Fond commun</b> : un seul fond pour tout le groupe (recliquer pour le retirer).</li>
+              </ul>
+            </li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/multi-fr.png" target="_blank"><img src="captures/guide/multi-fr.png" alt="Trois jauges sélectionnées et la barre d'alignement" loading="lazy"></a><figcaption><b>Aperçu</b>Trois jauges sélectionnées et la barre d'alignement.</figcaption></figure>
+        </div>
+        <div class="card" lang="en">
+          <h3>Selecting several gauges and aligning them <span class="where">Preview</span></h3>
+          <ul>
+            <li><kbd>Ctrl</kbd> or <kbd>Shift</kbd> + click: adds / removes a gauge from the selection.</li>
+            <li>Drawing a <b>box</b> in empty space selects the gauges it touches (with <kbd>Ctrl</kbd> / <kbd>Shift</kbd>, adds to the selection). <kbd>Esc</kbd> clears the selection.</li>
+            <li>Dragging a selected gauge moves the whole group.</li>
+            <li>The toolbar that appears (movable by its grip, double-click to put it back on top):
+              <ul>
+                <li><b>Align</b>: left, horizontal centre, right, top, vertical centre, bottom;</li>
+                <li><b>Distribute</b> horizontally / vertically (equal spacing, 3 gauges or more);</li>
+                <li><b>Arrange</b> as a <b>Row</b> or a <b>Column</b>;</li>
+                <li><b>Shared background</b>: one background for the whole group (click again to remove).</li>
+              </ul>
+            </li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/multi-en.png" target="_blank"><img src="captures/guide/multi-en.png" alt="Three selected gauges and the alignment toolbar" loading="lazy"></a><figcaption><b>Preview</b>Three selected gauges and the alignment toolbar.</figcaption></figure>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="style" data-title-fr="Apparence par défaut" data-title-en="Default appearance">
+        <h2 lang="fr">Apparence par défaut</h2>
+        <h2 lang="en">Default appearance</h2>
+        <div class="card" lang="fr">
+          <h3>Pour toutes les jauges <span class="where">Apparence</span></h3>
+          <figure class="shot side"><a href="captures/guide/apparence-fr.png" target="_blank"><img src="captures/guide/apparence-fr.png" alt="Section Apparence par défaut" loading="lazy"></a><figcaption><b>Apparence</b>Réglages communs à toutes les jauges.</figcaption></figure>
+          <ul>
+            <li>Nom des jauges : affiché ou non, position (dessus, dessous, gauche, droite), hauteur, majuscules, taille.</li>
+            <li>Unités affichées ou non ; système : <b>Réel</b> (celles du log), <b>Métrique</b>, <b>Impérial</b>, <b>Aviation</b> (ft, kt, NM).</li>
+            <li>Police : système, web (Orbitron, Rajdhani…) ou toute police installée en tapant son nom.</li>
+            <li>Fond et son opacité, taille générale, couleur d'accent, couleur du texte, durée des graphiques (10 s à 2 min).</li>
+            <li>« Remettre toutes les jauges sur l'apparence par défaut » efface les réglages individuels.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>For all gauges <span class="where">Style</span></h3>
+          <figure class="shot side"><a href="captures/guide/apparence-en.png" target="_blank"><img src="captures/guide/apparence-en.png" alt="Default appearance section" loading="lazy"></a><figcaption><b>Style</b>Settings shared by all gauges.</figcaption></figure>
+          <ul>
+            <li>Gauge names: shown or not, position (above, below, left, right), height, upper case, size.</li>
+            <li>Units shown or not; system: <b>Actual</b> (the log's), <b>Metric</b>, <b>Imperial</b>, <b>Aviation</b> (ft, kt, NM).</li>
+            <li>Font: system, web (Orbitron, Rajdhani…) or any installed font by typing its name.</li>
+            <li>Background and its opacity, overall size, accent colour, text colour, graph duration (10 s to 2 min).</li>
+            <li>“Reset all gauges to the default appearance” clears individual settings.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="osd" data-title-fr="OSD d'origine" data-title-en="Original OSD">
+        <h2 lang="fr">OSD d'origine (Walksnail / DJI)</h2>
+        <h2 lang="en">Original OSD (Walksnail / DJI)</h2>
+        <div class="card" lang="fr">
+          <h3>Redessiner l'OSD des lunettes <span class="where">OSD</span></h3>
+          <ul>
+            <li>Charge le <code>.osd</code> et la police OSD <code>.png</code> : l'OSD est redessiné par-dessus la vidéo, avec ou sans les jauges.</li>
+            <li>Taille, décalage X / Y, <b>vitesse</b> (corrige la dérive d'horloge).</li>
+            <li><b>Masquer des cases…</b> puis clic dans l'aperçu pour cacher un élément (nom du pilote, coordonnées GPS…).</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Redrawing the goggles' OSD <span class="where">OSD</span></h3>
+          <ul>
+            <li>Load the <code>.osd</code> and the OSD font <code>.png</code>: the OSD is redrawn over the video, with or without gauges.</li>
+            <li>Size, X / Y offset, <b>speed</b> (fixes clock drift).</li>
+            <li><b>Hide cells…</b> then click in the preview to hide an item (pilot name, GPS coordinates…).</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="cuts" data-title-fr="Couper vidéo, log et son" data-title-en="Cutting video, log and sound">
+        <h2 lang="fr">Couper la vidéo, le log et le son</h2>
+        <h2 lang="en">Cutting the video, the log and the sound</h2>
+        <div class="card" lang="fr">
+          <h3>Couper la vidéo <span class="where">Sous la frise</span></h3>
+          <ul>
+            <li>« ⇤ Le début jusqu'ici » et « La fin à partir d'ici ⇥ ».</li>
+            <li>« [ Début de coupe » (<kbd>I</kbd>) puis « Fin de coupe ] » (<kbd>O</kbd>) pour retirer un passage au milieu. ✕ annule une coupe.</li>
+            <li>Passages coupés hachurés en rouge, sautés dans l'aperçu ; la télémétrie reste synchronisée.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Cutting the video <span class="where">Under the timeline</span></h3>
+          <ul>
+            <li>“⇤ Start up to here” and “End from here ⇥”.</li>
+            <li>“[ Cut start” (<kbd>I</kbd>) then “Cut end ]” (<kbd>O</kbd>) to remove a middle passage. ✕ undoes a cut.</li>
+            <li>Cut passages are hatched red and skipped in the preview; telemetry stays in sync.</li>
+          </ul>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Couper le log et le recaler par parties <span class="where">Sous la frise</span></h3>
+          <ul>
+            <li>« Le log jusqu'ici » / « à partir d'ici » / coupe au milieu : ignore le sol, l'attente… (jauges, statistiques et échelles n'en tiennent plus compte).</li>
+            <li><b>✂ Scinder ici</b> : coupe le log en deux parties sans rien retirer.</li>
+            <li>Chaque partie se recale indépendamment : décalage, « commencer ici », glisser sur la courbe, coller à la précédente, caler sur le son ou sur le mouvement de l'image, ou recoller.</li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/coupes-fr.png" target="_blank"><img src="captures/guide/coupes-fr.png" alt="Frise avec une coupe vidéo, un son ajouté et un log scindé en deux parties" loading="lazy"></a><figcaption><b>Frise</b>Coupe vidéo hachurée en rouge, son ajouté, log scindé en deux parties.</figcaption></figure>
+        </div>
+        <div class="card" lang="en">
+          <h3>Cutting the log and realigning it in parts <span class="where">Under the timeline</span></h3>
+          <ul>
+            <li>“⇤ Log up to here” / “Log from here ⇥” / middle cut: ignores ground time, waiting… (gauges, statistics and scales stop counting it).</li>
+            <li><b>✂ Split here</b>: splits the log into two parts without removing anything.</li>
+            <li>Each part realigns on its own: offset, “start here”, drag on the chart, stick to the previous one, sync on sound or image motion, or join back.</li>
+          </ul>
+          <figure class="shot"><a href="captures/guide/coupes-en.png" target="_blank"><img src="captures/guide/coupes-en.png" alt="Timeline with a video cut, an added sound and a log split into two parts" loading="lazy"></a><figcaption><b>Timeline</b>Video cut hatched in red, added sound, log split into two parts.</figcaption></figure>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Marqueurs et chapitres <span class="where">Sous la frise</span></h3>
+          <ul>
+            <li><b>◆ Marqueur ici</b> (<kbd>M</kbd>) pose un marqueur à l'instant affiché, ouvre le volet et sélectionne son nom : tape directement le tien, <kbd>Entrée</kbd> pour valider. <b>☰ Liste et export</b> ouvre le volet <b>Marqueurs</b> (à gauche) : nom, couleur, ⌖ pour le déplacer à l'instant affiché, ✕ pour le retirer. Sur la frise, un losange qu'on peut <b>glisser</b>.</li>
+            <li><b>✨ Proposer depuis le log</b> ajoute les moments marquants du vol (décollage, atterrissage, altitude, vitesse et distance max, changements de mode de vol, batterie sous 20 %), en pointillés dans la liste. Avec un chrono de circuit, un marqueur par tour avec le temps du tour précédent (meilleur tour en violet). Les relancer remplace ces propositions, pas les marqueurs posés à la main. La vidéo et le log doivent être synchronisés.</li>
+            <li>Les temps exportés sont ceux de la <b>vidéo montée</b> : un marqueur dans un passage coupé est grisé et n'est pas exporté.</li>
+            <li><b>Sans vidéo</b> (log seul) : les marqueurs se posent sur le temps du log, s'affichent sur sa courbe et suivent l'export sans vidéo. Une vidéo chargée ensuite les reprend selon la synchronisation du moment ; ceux qui tombent hors de la vidéo sont retirés.</li>
+            <li><b>Chapitres YouTube</b> : texte à copier dans la description (0:00 « Intro » ajouté si besoin). L'appli signale ce que YouTube refuse : moins de 3 chapitres, ou un chapitre de moins de 10 s.</li>
+            <li><b>DaVinci Resolve</b> (<code>.edl</code>) : clic droit sur la timeline → <i>Timelines → Import → Timeline Markers from EDL</i>. Choisis le timecode de départ de la timeline (01:00:00:00 par défaut dans Resolve). Les couleurs sont reprises.</li>
+            <li><b>Premiere Pro</b> (<code>.xml</code>, format Final Cut Pro 7) : <i>Fichier → Importer</i> donne une séquence avec la vidéo exportée et ses marqueurs (indique le fichier si Premiere ne le trouve pas). Aussi lu par DaVinci Resolve.</li>
+            <li>L'<b>export rapide</b> inscrit les chapitres dans le MP4 : VLC, mpv et les lecteurs basés sur ffmpeg les affichent.</li>
+            <li>Jauge <b>Titre du chapitre</b> (« Spéciales ») : le nom du marqueur apparaît en fondu dans la vidéo à son passage, pendant 2 à 10 s ou jusqu'au marqueur suivant.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Markers and chapters <span class="where">Under the timeline</span></h3>
+          <ul>
+            <li><b>◆ Marker here</b> (<kbd>M</kbd>) adds a marker at the current time, opens the panel and selects its name: just type yours, <kbd>Enter</kbd> to confirm. <b>☰ List and export</b> opens the <b>Markers</b> panel (on the left): name, color, ⌖ to move it to the current time, ✕ to remove it. On the timeline, a diamond you can <b>drag</b>.</li>
+            <li><b>✨ Suggest from the log</b> adds the key moments of the flight (takeoff, landing, max altitude, speed and distance, flight mode changes, battery below 20%), dashed in the list. With a lap timer, one marker per lap with the previous lap time (best lap in purple). Running it again replaces these suggestions, not the markers you placed. The video and the log must be in sync.</li>
+            <li>Exported times are those of the <b>edited video</b>: a marker in a cut passage is greyed out and not exported.</li>
+            <li><b>Without a video</b> (log only): markers use the log time, show on its graph and follow the export without video. A video loaded afterwards takes them over using the sync at that moment; those falling outside the video are removed.</li>
+            <li><b>YouTube chapters</b>: text to paste into the description (0:00 “Intro” added if needed). The app flags what YouTube rejects: fewer than 3 chapters, or a chapter shorter than 10 s.</li>
+            <li><b>DaVinci Resolve</b> (<code>.edl</code>): right-click the timeline → <i>Timelines → Import → Timeline Markers from EDL</i>. Pick the timeline start timecode (01:00:00:00 by default in Resolve). Colors are kept.</li>
+            <li><b>Premiere Pro</b> (<code>.xml</code>, Final Cut Pro 7 format): <i>File → Import</i> gives a sequence with the exported video and its markers (point to the file if Premiere can't find it). Also read by DaVinci Resolve.</li>
+            <li>The <b>fast export</b> writes the chapters into the MP4: VLC, mpv and ffmpeg-based players show them.</li>
+            <li><b>Chapter title</b> gauge (“Special”): the marker name fades in on the video when it is reached, for 2 to 10 s or until the next marker.</li>
+          </ul>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Couper le son ajouté <span class="where">Sous la frise</span></h3>
+          <ul>
+            <li><kbd>Maj</kbd> + glisser sur le couloir d'un son dans la frise pour sélectionner un passage, puis <kbd>Suppr</kbd> ou « ✂ Couper la sélection ».</li>
+            <li>Ou depuis la forme d'onde de la piste dans « 1. Fichiers ». Les raccords sont adoucis par un court fondu.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Cutting the added sound <span class="where">Under the timeline</span></h3>
+          <ul>
+            <li><kbd>Shift</kbd> + drag on a sound's lane in the timeline to select a passage, then <kbd>Del</kbd> or “✂ Cut selection”.</li>
+            <li>Or from the track's waveform in “1. Files”. Joins are smoothed by a short fade.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="export" data-title-fr="Export" data-title-en="Export">
+        <h2 lang="fr">Export</h2>
+        <h2 lang="en">Export</h2>
+        <div class="card" lang="fr">
+          <h3>Formats <span class="where">4. Export</span></h3>
+          <figure class="shot side"><a href="captures/guide/export-fr.png" target="_blank"><img src="captures/guide/export-fr.png" alt="Section Export" loading="lazy"></a><figcaption><b>4. Export</b>Format, résolution, qualité, fondus et son.</figcaption></figure>
+          <ul>
+            <li><b>Vidéo MP4 avec l'incrustation</b>. Pour MP4 / MOV / AVI : <b>export rapide</b> image par image (plus vite que la lecture, onglet en arrière-plan possible). Autres formats : export temps réel (onglet au premier plan).</li>
+            <li><b>Séquence PNG transparente</b> : l'incrustation seule, à poser dans Premiere, Resolve, Final Cut… Jusqu'en 4K même depuis une vidéo HD.</li>
+            <li>Sous Chrome / Edge, le fichier est écrit au fil de l'eau : les longs exports 4K passent.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Formats <span class="where">4. Export</span></h3>
+          <figure class="shot side"><a href="captures/guide/export-en.png" target="_blank"><img src="captures/guide/export-en.png" alt="Export section" loading="lazy"></a><figcaption><b>4. Export</b>Format, resolution, quality, fades and sound.</figcaption></figure>
+          <ul>
+            <li><b>MP4 video with the overlay</b>. For MP4 / MOV / AVI: <b>fast export</b> frame by frame (faster than playback, tab may go to the background). Other formats: real-time export (tab in the foreground).</li>
+            <li><b>Transparent PNG sequence</b>: the overlay alone, to place in Premiere, Resolve, Final Cut… Up to 4K even from an HD video.</li>
+            <li>In Chrome / Edge, the file is written as it encodes: long 4K exports work.</li>
+          </ul>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Réglages <span class="where">4. Export</span></h3>
+          <ul>
+            <li><b>Résolution</b> : celle de la vidéo, ou 4K / 1440p / 1080p / 720p.</li>
+            <li><b>Qualité</b> : identique à la source (par défaut), supérieure, maximale, légère, ou débit personnalisé en Mbit/s. Estimation du fichier affichée.</li>
+            <li><b>Fondus</b> : aux raccords (0,25 à 1 s) et début / fin (0,5 à 3 s), image et son.</li>
+            <li><b>Son</b> : garder le son d'origine (avec volume) ; les pistes ajoutées sont mixées par-dessus.</li>
+            <li>L'export peut être annulé. Seuls les passages gardés sont exportés.</li>
+          </ul>
+          <p class="tip">Export lent, carte graphique à 0 % ? Paramètres Windows › Système › Affichage › Graphiques → navigateur en « Hautes performances », puis relance-le. Branche le PC sur secteur.</p>
+        </div>
+        <div class="card" lang="en">
+          <h3>Settings <span class="where">4. Export</span></h3>
+          <ul>
+            <li><b>Resolution</b>: the video's, or 4K / 1440p / 1080p / 720p.</li>
+            <li><b>Quality</b>: same as source (default), higher, maximum, light, or custom bitrate in Mbit/s. File size estimate shown.</li>
+            <li><b>Fades</b>: at joins (0.25 to 1 s) and start / end (0.5 to 3 s), picture and sound.</li>
+            <li><b>Sound</b>: keep the original sound (with volume); added tracks are mixed on top.</li>
+            <li>The export can be cancelled. Only kept passages are exported.</li>
+          </ul>
+          <p class="tip">Slow export, graphics card at 0 %? Windows Settings › System › Display › Graphics → set the browser to “High performance”, then restart it. Plug the PC into mains power.</p>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="project" data-title-fr="Projet et configuration" data-title-en="Project and configuration">
+        <h2 lang="fr">Projet, disposition et configuration</h2>
+        <h2 lang="en">Project, layout and configuration</h2>
+        <div class="card" lang="fr">
+          <h3>Sauvegarder et reprendre <span class="where">Projet · Apparence</span></h3>
+          <figure class="shot side"><a href="captures/guide/projet-fr.png" target="_blank"><img src="captures/guide/projet-fr.png" alt="Section Projet" loading="lazy"></a><figcaption><b>Projet</b>Enregistrer ou rouvrir un projet complet, ou seulement la disposition des jauges.</figcaption></figure>
+          <table>
+            <tr><th>Fichier</th><th>Contient</th><th>Où</th></tr>
+            <tr><td><b>Projet</b> <code>.otproj</code></td><td>vidéo, log, sons ajoutés, synchro, coupes, marqueurs, jauges, position de lecture — tout pour reprendre l'édition</td><td>Projet</td></tr>
+            <tr><td><b>Disposition</b> <code>.json</code></td><td>position et taille des jauges seulement</td><td>Projet</td></tr>
+            <tr><td><b>Configuration</b> <code>.json</code></td><td>jauges, positions, apparence, réglages d'export — à réappliquer sur une autre vidéo</td><td>Apparence</td></tr>
+          </table>
+          <p class="tip">Les choix de jauges et d'apparence sont aussi mémorisés dans le navigateur.</p>
+        </div>
+        <div class="card" lang="en">
+          <h3>Saving and resuming <span class="where">Project · Style</span></h3>
+          <figure class="shot side"><a href="captures/guide/projet-en.png" target="_blank"><img src="captures/guide/projet-en.png" alt="Project section" loading="lazy"></a><figcaption><b>Project</b>Save or reopen a full project, or only the gauge layout.</figcaption></figure>
+          <table>
+            <tr><th>File</th><th>Contains</th><th>Where</th></tr>
+            <tr><td><b>Project</b> <code>.otproj</code></td><td>video, log, added sounds, sync, cuts, markers, gauges, playhead — everything to resume editing</td><td>Project</td></tr>
+            <tr><td><b>Layout</b> <code>.json</code></td><td>gauge position and size only</td><td>Project</td></tr>
+            <tr><td><b>Configuration</b> <code>.json</code></td><td>gauges, positions, appearance, export settings — to reapply to another video</td><td>Style</td></tr>
+          </table>
+          <p class="tip">Gauge and appearance choices are also remembered in the browser.</p>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="keys" data-title-fr="Raccourcis" data-title-en="Shortcuts">
+        <h2 lang="fr">Raccourcis clavier et souris</h2>
+        <h2 lang="en">Keyboard and mouse shortcuts</h2>
+        <div class="card" lang="fr">
+          <table>
+            <tr><td><kbd>Espace</kbd></td><td>Lecture / pause</td></tr>
+            <tr><td><kbd>←</kbd> <kbd>→</kbd> (ou <kbd>,</kbd> <kbd>.</kbd>)</td><td>Image par image (aussi les boutons ◂| et |▸ autour de ▶)</td></tr>
+            <tr><td><kbd>Maj</kbd> + <kbd>←</kbd> <kbd>→</kbd></td><td>Reculer / avancer de 5 s</td></tr>
+            <tr><td><kbd>I</kbd> / <kbd>O</kbd></td><td>Début / fin de coupe vidéo</td></tr>
+            <tr><td><kbd>M</kbd></td><td>Poser un marqueur (chapitre)</td></tr>
+            <tr><td><kbd>F</kbd></td><td>Aperçu en plein écran (<kbd>Échap</kbd> ou <kbd>F</kbd> pour sortir)</td></tr>
+            <tr><td><kbd>Suppr</kbd></td><td>Couper la sélection du son ajouté</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Annuler (jauges, apparence, coupes, marqueurs, synchro, pistes audio)</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>Y</kbd> ou <kbd>Ctrl</kbd> + <kbd>Maj</kbd> + <kbd>Z</kbd></td><td>Rétablir</td></tr>
+            <tr><td><kbd>Ctrl</kbd> / <kbd>Maj</kbd> + clic, cadre</td><td>Sélectionner plusieurs jauges</td></tr>
+            <tr><td><kbd>Échap</kbd></td><td>Vider la sélection de jauges</td></tr>
+            <tr><td><kbd>Alt</kbd> + glisser</td><td>Déplacer une jauge sans aimantation</td></tr>
+            <tr><td>Molette sur une jauge</td><td>Redimensionner</td></tr>
+          </table>
+        </div>
+        <div class="card" lang="en">
+          <table>
+            <tr><td><kbd>Space</kbd></td><td>Play / pause</td></tr>
+            <tr><td><kbd>←</kbd> <kbd>→</kbd> (or <kbd>,</kbd> <kbd>.</kbd>)</td><td>Frame by frame (also the ◂| and |▸ buttons around ▶)</td></tr>
+            <tr><td><kbd>Shift</kbd> + <kbd>←</kbd> <kbd>→</kbd></td><td>Back / forward 5 s</td></tr>
+            <tr><td><kbd>I</kbd> / <kbd>O</kbd></td><td>Video cut start / end</td></tr>
+            <tr><td><kbd>M</kbd></td><td>Add a marker (chapter)</td></tr>
+            <tr><td><kbd>F</kbd></td><td>Full-screen preview (<kbd>Esc</kbd> or <kbd>F</kbd> to leave)</td></tr>
+            <tr><td><kbd>Del</kbd></td><td>Cut the added-sound selection</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Undo (gauges, appearance, cuts, markers, sync, audio tracks)</td></tr>
+            <tr><td><kbd>Ctrl</kbd> + <kbd>Y</kbd> or <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo</td></tr>
+            <tr><td><kbd>Ctrl</kbd> / <kbd>Shift</kbd> + click, box</td><td>Select several gauges</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Clear the gauge selection</td></tr>
+            <tr><td><kbd>Alt</kbd> + drag</td><td>Move a gauge without snapping</td></tr>
+            <tr><td>Wheel on a gauge</td><td>Resize</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===================================================== -->
+      <section class="chap" id="trouble" data-title-fr="Dépannage" data-title-en="Troubleshooting">
+        <h2 lang="fr">Dépannage</h2>
+        <h2 lang="en">Troubleshooting</h2>
+        <div class="card" lang="fr">
+          <h3>Problèmes fréquents</h3>
+          <dl class="trouble">
+            <dt>« Format de log non reconnu »</dt>
+            <dd>Vérifie que c'est bien le fichier d'origine (pas un export d'un autre outil). Un blackbox au format v1 (très ancien) n'est pas lu. Sinon, signale-le : le lien joint au message envoie le format, sans les valeurs.</dd>
+            <dt>« Synchro automatique impossible : pas de gaz ni de courant dans le log »</dt>
+            <dd>Le log ne permet pas la synchro par le son. Utilise <b>Caler sur le mouvement de l'image</b> ou le <a href="#sync">calage manuel</a>.</dd>
+            <dt>La synchro automatique tombe à côté</dt>
+            <dd>Vent, moteur thermique ou musique couvrent les moteurs. Essaie le calage sur l'image, ou marque le décollage à la main puis affine avec ±0,1 s.</dd>
+            <dt>Calé à un moment du vol, décalé à un autre</dt>
+            <dd>La caméra a perdu des images (accroc d'enregistrement, raccord entre deux fichiers). Clique sur <b>Vérifier le calage sur toute la vidéo</b> : les sauts sont repérés et le log est coupé d'autant.</dd>
+            <dt>« Cette vidéo ne contient pas de télémétrie lisible »</dt>
+            <dd>La vidéo a été réencodée, ou le modèle DJI n'écrit pas de télémétrie dans le MP4 : charge le <code>.SRT</code> ou le journal de vol. Voir <a href="#prepare">Préparer ses logs</a>.</dd>
+            <dt>« Cet enregistrement OSD est vide »</dt>
+            <dd>Aucun élément n'était affiché dans les lunettes pendant le vol : active MSP DisplayPort et place des éléments OSD.</dd>
+            <dt>La stabilisation n'est pas proposée</dt>
+            <dd>Le log n'a pas de gyroscope assez rapide (50 Hz minimum) : EdgeTX, <code>.tlog</code> et DJI n'en ont pas. Il faut une blackbox, un <code>.bin</code> ArduPilot, une GoPro ou une Insta360.</dd>
+            <dt>L'horizon affiche « EST. »</dt>
+            <dd>Le log n'a pas d'attitude : elle est estimée depuis la trace GPS. Normal pour une GoPro, un GPX…</dd>
+            <dt>Une jauge reste vide ou à zéro</dt>
+            <dd>La donnée n'existe pas dans ce log, ou pas à cet instant (GPS sans fix au début). Affiche-la dans la courbe sous la vidéo pour vérifier.</dd>
+            <dt>Mini-carte ou carte 3D sans fond</dt>
+            <dd>Le fond satellite et le relief sont désactivés par défaut et demandent Internet. Active-les dans les réglages de la jauge.</dd>
+            <dt>Export lent ou qui échoue</dt>
+            <dd>Utilise Chrome ou Edge sur ordinateur, PC branché sur secteur, navigateur en « Hautes performances » dans les paramètres graphiques de Windows. Sous Firefox / Safari, l'export rapide et l'écriture directe ne sont pas disponibles.</dd>
+          </dl>
+        </div>
+        <div class="card" lang="en">
+          <h3>Common problems</h3>
+          <dl class="trouble">
+            <dt>“Unrecognized log format”</dt>
+            <dd>Check it is the original file (not an export from another tool). A v1 blackbox (very old) is not read. Otherwise, report it: the link in the message sends the format, without the values.</dd>
+            <dt>“Auto sync unavailable: no throttle or current in the log”</dt>
+            <dd>The log cannot be synced by sound. Use <b>Sync on image motion</b> or <a href="#sync">manual alignment</a>.</dd>
+            <dt>Automatic sync is off</dt>
+            <dd>Wind, a combustion engine or music cover the motors. Try image-motion sync, or mark take-off by hand and fine-tune with ±0.1 s.</dd>
+            <dt>Synced at one moment of the flight, off at another</dt>
+            <dd>The camera lost frames (recording glitch, join between two files). Click <b>Check sync over the whole video</b>: the jumps are found and the log is cut accordingly.</dd>
+            <dt>“This video contains no readable telemetry”</dt>
+            <dd>The video was re-encoded, or the DJI model writes no telemetry in the MP4: load the <code>.SRT</code> or the flight record. See <a href="#prepare">Preparing your logs</a>.</dd>
+            <dt>“This OSD recording is empty”</dt>
+            <dd>Nothing was shown in the goggles during the flight: enable MSP DisplayPort and place OSD elements.</dd>
+            <dt>Stabilization is not offered</dt>
+            <dd>The log has no fast enough gyroscope (50 Hz minimum): EdgeTX, <code>.tlog</code> and DJI have none. You need a blackbox, an ArduPilot <code>.bin</code>, a GoPro or an Insta360.</dd>
+            <dt>The horizon shows “EST.”</dt>
+            <dd>The log has no attitude: it is estimated from the GPS track. Normal for a GoPro, a GPX…</dd>
+            <dt>A gauge stays empty or at zero</dt>
+            <dd>The field does not exist in this log, or not at that moment (no GPS fix at the start). Show it in the chart under the video to check.</dd>
+            <dt>Mini-map or 3D map without background</dt>
+            <dd>Satellite background and terrain are off by default and need Internet. Turn them on in the gauge settings.</dd>
+            <dt>Export slow or failing</dt>
+            <dd>Use desktop Chrome or Edge, PC on mains power, browser set to “High performance” in Windows graphics settings. In Firefox / Safari, fast export and direct writing are not available.</dd>
+          </dl>
+        </div>
+        <div class="card" lang="fr">
+          <h3>Signaler un problème</h3>
+          <ul>
+            <li>Clique sur <b>🐞 Signaler un bug</b> dans l'application, ou sur « Signaler ce problème » sous un message d'erreur : une page GitHub s'ouvre, préremplie avec le navigateur, la carte graphique et le format du log (sans ses valeurs). Rien ne part avant que tu la relises.</li>
+            <li>Indique la source (radio, contrôleur de vol, caméra, firmware), ce que tu as fait et ce que tu attendais. Une capture d'écran aide beaucoup.</li>
+            <li>La page est <b>publique</b> : ne joins un log que si sa position GPS peut être rendue publique.</li>
+          </ul>
+        </div>
+        <div class="card" lang="en">
+          <h3>Reporting a problem</h3>
+          <ul>
+            <li>Click <b>🐞 Report a bug</b> in the app, or “Report this problem” under an error message: a GitHub page opens, prefilled with the browser, graphics card and log format (without its values). Nothing is sent before you review it.</li>
+            <li>Give the source (radio, flight controller, camera, firmware), what you did and what you expected. A screenshot helps a lot.</li>
+            <li>The page is <b>public</b>: only attach a log if its GPS position can be made public.</li>
+          </ul>
+        </div>
+      </section>
+
+      <p class="empty" id="noResult" hidden><span lang="fr">Aucune fonction ne correspond à cette recherche.</span><span lang="en">No feature matches this search.</span></p>
+    </main>
+  </div>
+
+  <footer class="support">
+    <p lang="fr">☕ Cet outil t'a fait gagner du temps ? Un petit geste aide à le faire vivre :
+      PayPal <a href="https://paypal.me/ThiDom/10EUR" target="_blank" rel="noopener">10 €</a>
+      · <a href="https://paypal.me/ThiDom" target="_blank" rel="noopener">montant libre</a>
+      · <a href="https://ko-fi.com/thibaultguillaume" target="_blank" rel="noopener">Offrir un café</a> (carte ou PayPal, sans compte)
+      · <a href="https://github.com/sponsors/tguillaume02" target="_blank" rel="noopener">💖 GitHub Sponsors</a>
+      · <a href="https://github.com/tguillaume02/telemetry-overlay/issues/new" target="_blank" rel="noopener">🐞 Signaler un bug</a>
+      · <a href="./">Ouvrir l'application</a></p>
+    <p lang="en">☕ Did this tool save you time? A small tip helps keep it going:
+      PayPal <a href="https://paypal.me/ThiDom/10USD" target="_blank" rel="noopener">$10</a>
+      · <a href="https://paypal.me/ThiDom" target="_blank" rel="noopener">any amount</a>
+      · <a href="https://ko-fi.com/thibaultguillaume" target="_blank" rel="noopener">Buy me a coffee</a> (card or PayPal, no account)
+      · <a href="https://github.com/sponsors/tguillaume02" target="_blank" rel="noopener">💖 GitHub Sponsors</a>
+      · <a href="https://github.com/tguillaume02/telemetry-overlay/issues/new" target="_blank" rel="noopener">🐞 Report a bug</a>
+      · <a href="./">Open the app</a></p>
+  </footer>
+
+  <script src="js/guide.js" defer></script>
+</body>
+</html>

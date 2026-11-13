@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Telemetry Overlay</title>
+  <meta name="description" content="Incruste ta télémétrie (drone, FPV, GoPro, Insta360, Garmin : altitude, vitesse, batterie, GPS, cardio) sur tes vidéos, directement dans le navigateur.">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Telemetry Overlay">
+  <meta property="og:title" content="Telemetry Overlay">
+  <meta property="og:description" content="Incruste ta télémétrie (drone, FPV, GoPro, Insta360, Garmin : altitude, vitesse, batterie, GPS, cardio) sur tes vidéos, directement dans le navigateur.">
+  <meta property="og:url" content="https://tguillaume02.github.io/telemetry-overlay/">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:image" content="https://tguillaume02.github.io/telemetry-overlay/logo/og-image-en.jpg?v=2">
+  <meta property="og:image:width" content="2400">
+  <meta property="og:image:height" content="1260">
+  <meta property="og:image:alt" content="Telemetry Overlay : la télémétrie de ton vol incrustée sur ta vidéo">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://tguillaume02.github.io/telemetry-overlay/logo/og-image.jpg?v=2">
+  <link rel="icon" type="image/svg+xml" href="logo/telemetry-overlay-icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="logo/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="logo/favicon-64.png">
+  <link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#f3f5f8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Telemetry">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script>
+    // Thème appliqué avant l'affichage, pour éviter un éclair sombre ou clair (voir js/ui/theme.js)
+    try {
+      var t = localStorage.getItem('telemetry-overlay-theme');
+      document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light';
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  </script>
+  <link rel="stylesheet" href="style.css?v=202611101700">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-id">
+      <h1 class="brand">
+        <img class="brand-icon" src="logo/telemetry-overlay-icon.svg" alt="" width="42" height="42">
+        <span class="brand-name"><span class="brand-main">Telemetry</span><span class="brand-sub">Overlay</span></span>
+      </h1>
+      <ul class="topbar-tags" aria-label="Confidentialité et navigateur">
+        <li class="tag-browser" id="tagBrowser" title="L'export rapide et le calage sur l'image s'appuient sur WebCodecs et la File System Access API, complets sous Chrome et Edge. Firefox et Safari fonctionnent avec des limites.">Optimisé pour Chrome / Edge</li>
+      </ul>
+    </div>
+    <div class="topbar-intro">
+      <p class="tagline">La télémétrie de ton vol, incrustée sur ta vidéo.</p>
+      <p class="topbar-totals" id="topbarTotals" title="Compteurs anonymes depuis le lancement : navigateurs ayant ouvert l'application et vidéos exportées" hidden></p>
+    </div>
+    <div class="topbar-end">
+      <nav class="topbar-links" aria-label="Liens">
+        <button type="button" class="link-install" id="installApp" title="Ajouter Telemetry Overlay à l’écran d’accueil, comme une application" hidden>📲 Installer l’appli</button>
+        <button type="button" class="link-news" id="whatsNew" title="Ce qui a changé depuis la vidéo de présentation">✨ Nouveautés</button>
+        <a class="link-home" href="presentation.html" target="_blank" rel="noopener" title="La page de présentation : vidéo, formats pris en charge, questions fréquentes">🏠 Présentation</a>
+        <a class="link-guide" href="guide.html" target="_blank" rel="noopener" title="Toutes les fonctions sur une page : fichiers, synchro, jauges, coupes, son, export">📖 Guide</a>
+        <a class="link-bug" id="reportBug" href="https://github.com/tguillaume02/telemetry-overlay/issues/new" target="_blank" rel="noopener" title="Ouvre une page GitHub préremplie, à relire avant de l’envoyer (compte GitHub gratuit nécessaire)">🐞 Signaler un bug</a>
+        <a href="https://tguillaume02.github.io/" target="_blank" rel="noopener" title="Mes autres projets">Autres projets</a>
+        <a class="link-paypal" href="https://paypal.me/ThiDom" target="_blank" rel="noopener" title="Faire un don du montant de ton choix par PayPal">💙 PayPal</a>
+        <a class="link-kofi" href="https://ko-fi.com/thibaultguillaume" target="_blank" rel="noopener" title="Faire un don, sans créer de compte : carte bancaire ou PayPal (via Ko-fi)">☕ Offrir un café</a>
+        <a class="link-sponsor" href="https://github.com/sponsors/tguillaume02" target="_blank" rel="noopener" title="Soutenir le projet avec un compte GitHub (via GitHub Sponsors)">💖 Sponsoriser</a>
+      </nav>
+      <div class="lang-switch" id="langSwitch" role="group" aria-label="Langue"></div>
+      <button type="button" class="theme-switch" id="themeSwitch" title="Passer au thème clair" aria-label="Passer au thème clair">☀</button>
+    </div>
+  </header>
+
+  <dialog class="whats-new" id="whatsNewDialog" aria-labelledby="whatsNewTitle">
+    <div class="whats-new-head">
+      <h2 id="whatsNewTitle">Nouveautés</h2>
+      <button type="button" class="whats-new-close" id="whatsNewClose" title="Fermer" aria-label="Fermer">×</button>
+    </div>
+    <div class="whats-new-body" id="whatsNewBody"></div>
+  </dialog>
+
+  <dialog class="whats-new" id="installDialog" aria-labelledby="installTitle">
+    <div class="whats-new-head">
+      <h2 id="installTitle">Installer l’application</h2>
+      <button type="button" class="whats-new-close" id="installClose" title="Fermer" aria-label="Fermer">×</button>
+    </div>
+    <div class="whats-new-body">
+      <ol class="install-steps">
+        <li data-i18n>Touche le bouton <b>Partager</b> de Safari (carré avec une flèche vers le haut).</li>
+        <li data-i18n>Choisis <b>Sur l’écran d’accueil</b>.</li>
+        <li data-i18n>Touche <b>Ajouter</b> : l’application s’ouvre ensuite depuis son icône, en plein écran.</li>
+      </ol>
+    </div>
+  </dialog>
+
+  <main class="layout">
+    <nav class="rail" aria-label="Parties">
+      <button type="button" class="rail-btn" data-tab="files" title="1. Fichiers" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5 12 11l2.5 2.5"/></svg><span>Fichiers</span></button>
+      <button type="button" class="rail-btn" data-tab="sync" title="2. Synchronisation" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7"/><path d="M12 9v4l2.5 2.5M10 3h4M19 6l1.5-1.5"/></svg><span>Synchro</span></button>
+      <button type="button" class="rail-btn" data-tab="gauges" title="3. Jauges" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 17a8 8 0 1 1 15 0"/><path d="m12 14 4-5"/><circle cx="12" cy="14" r="1.2"/></svg><span>Jauges</span></button>
+      <button type="button" class="rail-btn" data-tab="osd" title="OSD d'origine (.osd Walksnail / DJI)" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M6 9h3M15 9h3M6 15h2M10 15h1M15 15h3"/></svg><span>OSD</span></button>
+      <button type="button" class="rail-btn" data-tab="srt" title="Données du .SRT (Walksnail / DJI)" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M6 15h4M12 15h6M6 11.5h7"/></svg><span>SRT</span></button>
+      <button type="button" class="rail-btn" data-tab="style" title="Apparence par défaut" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6H16a5 5 0 0 0 5-5c0-4-4-7.4-9-7.4z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10.5" cy="7.5" r="1"/><circle cx="15" cy="7.5" r="1"/></svg><span>Apparence</span></button>
+      <button type="button" class="rail-btn" data-tab="markers" title="Marqueurs / chapitres" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/></svg><span>Marqueurs</span></button>
+      <button type="button" class="rail-btn" data-tab="annotations" title="Annotations : textes, émojis et flèches sur la vidéo" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M8 9h8M8 12h5"/></svg><span>Annotations</span></button>
+      <button type="button" class="rail-btn" data-tab="export" title="4. Export" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 17v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2"/></svg><span>Export</span></button>
+      <button type="button" class="rail-btn rail-end" data-tab="project" title="Projet" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11l3 3v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/></svg><span>Projet</span></button>
+    </nav>
+
+    <aside class="panel" id="panel">
+      <section data-tab="project" hidden>
+        <h2>Projet</h2>
+        <p class="hint" data-i18n>Enregistre la vidéo, le log, le son ajouté, la synchronisation, les coupes et les jauges dans un seul fichier <b>.otproj</b> pour reprendre l'édition plus tard.</p>
+        <div class="row">
+          <button type="button" id="saveProject" disabled>Enregistrer le projet</button>
+          <button type="button" id="openProject">Ouvrir un projet</button>
+          <input type="file" id="fileProject" accept=".otproj" hidden>
+        </div>
+        <p class="msg" id="projectInfo" hidden></p>
+        <div class="field">Disposition des jauges
+          <p class="hint" data-i18n>Enregistre uniquement la position et la taille des jauges dans un fichier <b>.json</b>, pour les replacer à l'identique sur une autre vidéo.</p>
+          <div class="row">
+            <button type="button" id="saveLayout">Enregistrer la disposition</button>
+            <button type="button" id="loadLayout">Charger une disposition</button>
+            <input type="file" id="fileLayout" accept=".json,.otproj,application/json" hidden>
+          </div>
+        </div>
+        <p class="msg" id="layoutInfo" hidden></p>
+      </section>
+
+      <section data-tab="files" hidden>
+        <h2>1. Fichiers</h2>
+        <label class="drop" id="dropVideo">
+          <input type="file" id="fileVideo" accept="video/*,.avi,.mov,.mkv,.lrf,.insv,.lrv" multiple hidden>
+          <span class="drop-title">Vidéo du vol</span>
+          <span class="drop-name" id="nameVideo">MP4, MOV, WebM… (plusieurs fichiers : lus à la suite)</span>
+        </label>
+        <ol class="clip-list" id="videoClips" hidden></ol>
+        <input type="file" id="fileVideoAdd" accept="video/*,.avi,.mov,.mkv,.lrf,.insv,.lrv" multiple hidden>
+        <div class="clip-actions">
+          <button type="button" class="link clip-add" id="addVideo" hidden>＋ Ajouter une vidéo à la suite</button>
+          <button type="button" class="link clip-add" id="removeVideo" title="Retire la vidéo chargée ; le log et les jauges sont gardés" hidden>✕ Retirer la vidéo</button>
+        </div>
+        <label class="drop" id="dropLog">
+          <input type="file" id="fileLog" accept=".csv,.bin,.log,.tlog,.rlog,.txt,.bbl,.bfl,.srt,.mp4,.insv,.lrv,.fit,.gpx,.tcx,.vbo,.nmea,.nma,.osd,text/csv" multiple hidden>
+          <span class="drop-title">Log de vol</span>
+          <span class="drop-name" id="nameLog">EdgeTX (.csv), ArduPilot (.bin / .log), MAVLink (.tlog / .rlog), INAV / Betaflight (blackbox .TXT / .BBL ou .csv), DJI (journal .txt, .csv ou vidéo .MP4), GoPro (vidéo .MP4), Insta360 (vidéo .INSV / .MP4), Walksnail / DJI (OSD .osd), Garmin (.FIT, .TCX), GPX, chronos de circuit (RaceChrono, AiM, VBOX .vbo, Harry’s LapTimer, NMEA)</span>
+        </label>
+        <ol class="clip-list" id="logClips" hidden></ol>
+        <p class="msg" id="logInfo" hidden></p>
+        <select id="logFlight" aria-label="Vol à afficher" hidden></select>
+        <input type="file" id="fileLogAdd" accept=".csv,.bin,.log,.tlog,.rlog,.txt,.bbl,.bfl,.srt,.mp4,.insv,.lrv,.fit,.gpx,.tcx,.vbo,.nmea,.nma,.osd,text/csv" multiple hidden>
+        <div class="clip-actions">
+          <button type="button" class="link clip-add" id="addLog" title="Colle un autre log après celui-ci (log coupé en plusieurs fichiers, vol suivant…) ; il devient une partie à recaler dans « Couper le log »" hidden>＋ Ajouter un log à la suite</button>
+          <button type="button" class="link clip-add" id="removeLog" title="Retire le log chargé ; la vidéo et la disposition des jauges sont gardées" hidden>✕ Retirer le log</button>
+        </div>
+        <label class="drop" id="dropSrt">
+          <input type="file" id="fileSrt" accept=".srt" multiple hidden>
+          <span class="drop-title" data-i18n>Sous-titres .SRT <small>(facultatif)</small></span>
+          <span class="drop-name" id="nameSrt">Walksnail, lunettes ou drone DJI : signal, latence, débit, GPS… Un fichier par vidéo.</span>
+        </label>
+        <div class="clip-actions">
+          <button type="button" class="link clip-add" id="removeSrt" title="Retire les sous-titres .SRT chargés ; les autres logs sont gardés" hidden>✕ Retirer les .SRT</button>
+        </div>
+        <label class="drop" id="dropAudio">
+          <input type="file" id="fileAudio" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.oga,.opus,.flac,.webm" multiple hidden>
+          <span class="drop-title" data-i18n>Son ajouté <small>(facultatif)</small></span>
+          <span class="drop-name">Musique, commentaire… MP3, WAV, M4A, OGG, FLAC. Plusieurs fichiers possibles.</span>
+        </label>
+        <ul class="tracks" id="audioTracks"></ul>
+        <p class="hint tracks-hint" id="tracksHint" data-i18n hidden>Mixé avec le son d'origine. Le départ est compté sur la vidéo <b>exportée</b>, après les coupes. Glisse une piste sur la frise sous la vidéo pour la placer, ou « ⤓ Ici » pour la caler sur l'instant affiché. Sur la forme d'onde : clic pour choisir où écouter, glisser pour sélectionner un passage à couper ou à garder.</p>
+      </section>
+
+      <section data-tab="sync" hidden>
+        <h2>2. Synchronisation</h2>
+        <p class="hint" data-i18n>Mets la vidéo sur un instant reconnaissable (décollage, coup de gaz), clique sur <b>Marquer</b>, puis clique sur le même instant dans la courbe du log.</p>
+        <div class="row">
+          <button type="button" id="markVideo" title="Retient l'instant affiché dans la vidéo ; clique ensuite sur le même instant dans la courbe du log">Marquer l'instant vidéo</button>
+        </div>
+        <div class="row pair">
+          <button type="button" id="autoSync" title="Aligne le décollage détecté dans le log sur l'instant vidéo marqué">Caler sur le décollage</button>
+          <button type="button" id="landingSync" title="Aligne l'atterrissage détecté dans le log sur l'instant vidéo marqué : utile quand la vidéo ne montre pas le décollage">Caler sur l'atterrissage</button>
+        </div>
+        <div class="row pair">
+          <button type="button" id="soundSync" title="Compare le bruit des moteurs dans le son de la vidéo à la courbe des gaz du log" disabled>Caler sur le son des moteurs</button>
+          <button type="button" id="motionSync" title="Compare les rotations visibles dans l'image (roulis, tangage, lacet) à celles du log : utile quand le son ne suffit pas" disabled>Caler sur le mouvement de l'image</button>
+        </div>
+        <div class="row">
+          <button type="button" id="driftCheck" title="Une fois la vidéo calée : mesure le décalage tout au long de la vidéo pour repérer les secondes de vol que la caméra n'a pas filmées (accroc d'enregistrement, raccord entre deux fichiers)" disabled>Vérifier le calage sur toute la vidéo</button>
+        </div>
+        <div class="hint drift-info" id="driftInfo" hidden></div>
+        <label class="check" title="Compare le bruit des moteurs dans le son de la vidéo à la courbe des gaz du log ; sans son exploitable, compare le mouvement de l'image"><input type="checkbox" id="optAutoSync" checked> Synchro automatique (son des moteurs, sinon mouvement de l'image)</label>
+        <p class="hint" id="autoSyncInfo" hidden></p>
+        <p class="marks" id="marks">Vidéo : -- · Log : --</p>
+        <label class="field">Décalage (log − vidéo), en secondes
+          <div class="row nudge">
+            <button type="button" data-nudge="-1">−1</button>
+            <button type="button" data-nudge="-0.1">−0,1</button>
+            <button type="button" data-nudge="-0.01">−0,01</button>
+            <input type="number" id="offset" step="0.01" value="0">
+            <button type="button" data-nudge="0.01">+0,01</button>
+            <button type="button" data-nudge="0.1">+0,1</button>
+            <button type="button" data-nudge="1">+1</button>
+          </div>
+        </label>
+        <p class="field share-head">Stabilisation <span class="dev-badge">En développement</span></p>
+        <p class="hint">Cette option est encore en cours de développement : le résultat peut être imparfait selon la vidéo et le log.</p>
+        <label class="check" title="Tourne et déplace chaque image d'après le gyroscope du log (blackbox INAV / Betaflight, ArduPilot, GoPro, Insta360), dans l'aperçu et l'export vidéo"><input type="checkbox" id="stabOn" disabled> Stabiliser la vidéo avec le gyroscope du log</label>
+        <p class="hint" id="stabInfo" hidden></p>
+        <div id="stabOpts" hidden>
+          <label class="field" title="Durée sur laquelle les mouvements sont lissés : plus long, l'image est plus calme mais suit moins vite les virages">Lissage <span id="stabSmoothVal"></span>
+            <input type="range" id="stabSmooth" min="0.2" max="3" step="0.1" value="1">
+          </label>
+          <label class="field" title="Agrandissement de l'image pour que ses bords ne se voient pas quand elle est déplacée">Agrandissement <span id="stabZoomVal"></span>
+            <input type="range" id="stabZoom" min="1" max="1.5" step="0.01" value="1.15">
+          </label>
+        </div>
+        <div class="row">
+          <button type="button" id="stabCalib" title="Mesure à nouveau le mouvement de l'image pour retrouver les axes du gyroscope, la focale et le recalage fin. La stabilisation garde la synchro de sa calibration : retoucher ensuite celle des jauges ne la dérègle pas" disabled>Recalibrer</button>
+        </div>
+      </section>
+
+      <section data-tab="gauges" hidden>
+        <h2>3. Jauges</h2>
+        <div id="gauges" class="gauges">
+          <p class="hint">Charge un log pour choisir les jauges.</p>
+        </div>
+        <label class="field">Ajouter une jauge
+          <input type="search" id="gaugeSearch" placeholder="Rechercher une donnée…" autocomplete="off" disabled
+                 title="Filtre la liste ; Entrée ajoute le premier résultat, ↓ pour parcourir">
+          <select id="addGauge" disabled><option value="">Choisir une donnée…</option></select>
+        </label>
+        <p class="msg ok" id="gaugeFlash" hidden></p>
+      </section>
+
+      <section data-tab="osd" hidden>
+        <h2>OSD d'origine</h2>
+        <p class="hint" data-i18n>Redessine l'OSD enregistré par les lunettes (fichier <b>.osd</b> Walksnail Avatar ou DJI WTFOS) avec sa police, par-dessus la vidéo, en plus des jauges ou à leur place.</p>
+        <label class="drop" id="dropOsd">
+          <input type="file" id="fileOsd" accept=".osd" multiple hidden>
+          <span class="drop-title">Enregistrement OSD (.osd)</span>
+          <span class="drop-name" id="nameOsd"></span>
+        </label>
+        <label class="drop" id="dropOsdFont">
+          <input type="file" id="fileOsdFont" accept="image/png,.png" multiple hidden>
+          <span class="drop-title">Police OSD (.png)</span>
+          <span class="drop-name" id="nameOsdFont"></span>
+        </label>
+        <button type="button" id="osdFontReset" class="link" hidden>Revenir à la police intégrée</button>
+        <p class="msg" id="osdInfo" hidden></p>
+        <label class="check"><input type="checkbox" id="osdShow"> Afficher l'OSD</label>
+        <label class="check"><input type="checkbox" id="osdGauges" checked> Afficher aussi les jauges</label>
+        <label class="field">Taille de l'OSD <span id="osdScaleVal"></span>
+          <input type="range" id="osdScale" min="0.5" max="1.5" step="0.01" value="1">
+        </label>
+        <div class="row field">
+          <label class="inline" title="En pixels d'une vidéo 1080p">Décalage X <input type="number" id="osdDx" step="1" value="0"></label>
+          <label class="inline" title="En pixels d'une vidéo 1080p">Y <input type="number" id="osdDy" step="1" value="0"></label>
+        </div>
+        <label class="field" title="Compense la dérive d'horloge entre l'OSD et la vidéo : au-dessus de 1, l'OSD avance plus vite">Vitesse de l'OSD
+          <input type="number" id="osdSpeed" min="0.9" max="1.1" step="0.0005" value="1">
+        </label>
+        <button type="button" id="osdReset" class="link">Remettre la taille, la position et la vitesse par défaut</button>
+        <div class="row field">
+          <button type="button" id="osdMask" title="Clique ensuite sur les cases de l'aperçu à cacher (ou à réafficher)">Masquer des cases…</button>
+          <button type="button" id="osdUnmask">Tout réafficher</button>
+          <span class="hint" id="osdMaskInfo"></span>
+        </div>
+        <p class="hint" id="osdMaskHint" hidden>Clique sur une case de l'aperçu pour la masquer ou la réafficher (nom du pilote, coordonnées GPS…).</p>
+        <div class="field" id="osdItemsBox" hidden>
+          <span>Éléments affichés</span>
+          <p class="hint">Décoche un élément pour le masquer (repéré sur l'enregistrement : ses cases sont cachées).</p>
+          <div class="row" id="osdItems"></div>
+        </div>
+      </section>
+
+      <section data-tab="srt" hidden>
+        <h2>Données du .SRT</h2>
+        <p class="hint">Signal, latence, débit et autres données des sous-titres .SRT (Walksnail, lunettes ou drone DJI), écrites en bas à gauche de la vidéo.</p>
+        <p class="msg" id="srtEmpty">Aucun .SRT chargé : dépose-le dans « 1. Fichiers », zone « Sous-titres .SRT ».</p>
+        <div id="osdSrt" hidden>
+          <label class="check"><input type="checkbox" id="srtShow"> Afficher les données du .SRT</label>
+          <div class="field">
+            <span>Données affichées</span>
+            <div class="row" id="osdSrtFields"></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-tab="style" hidden>
+        <h2>Apparence par défaut</h2>
+        <p class="hint">S'applique à toutes les jauges, sauf celles réglées individuellement (bouton 🎨 ou clic sur la jauge dans l'aperçu).</p>
+        <label class="check"><input type="checkbox" id="optLabel" checked> Afficher le nom des jauges</label>
+        <div class="row field">
+          <label class="inline">Position du nom
+            <select id="optLabelPos" title="Gauche / droite : jauges « Valeur »">
+              <option value="above">Au-dessus</option>
+              <option value="below">En dessous</option>
+              <option value="left">À gauche</option>
+              <option value="right">À droite</option>
+            </select>
+          </label>
+          <label class="inline">Hauteur
+            <select id="optLabelAlign" title="Hauteur du nom quand il est à gauche ou à droite">
+              <option value="top">En haut</option>
+              <option value="middle">Au centre</option>
+              <option value="bottom">En bas</option>
+            </select>
+          </label>
+          <label class="inline" title="Les noms personnalisés s'affichent toujours tels que saisis"><input type="checkbox" id="optLabelUpper" checked> Majuscules</label>
+        </div>
+        <label class="field">Taille des noms <span id="optLabelSizeVal"></span>
+          <input type="range" id="optLabelSize" min="0.5" max="2" step="0.05" value="1">
+        </label>
+        <label class="check"><input type="checkbox" id="optUnit" checked> Afficher les unités (%, V, A, mAh, dBm…)</label>
+        <label class="field" title="Réel : unités enregistrées dans le log, sans conversion">Unités
+          <select id="optUnits"></select>
+        </label>
+        <div class="field">Police
+          <div id="optFontBox"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="optBg" checked> Fond derrière les jauges</label>
+        <label class="field">Opacité du fond <span id="optBgAlphaVal"></span>
+          <input type="range" id="optBgAlpha" min="0" max="1" step="0.05" value="0.55">
+        </label>
+        <label class="field">Taille des jauges <span id="optScaleVal"></span>
+          <input type="range" id="optScale" min="0.5" max="1.6" step="0.05" value="1">
+        </label>
+        <div class="row field">
+          <label class="inline">Couleur <input type="color" id="optAccent" value="#38bdf8"></label>
+          <label class="inline">Texte <input type="color" id="optText" value="#ffffff"></label>
+          <label class="inline">Graphiques sur
+            <select id="optWindow">
+              <option value="10">10 s</option>
+              <option value="30" selected>30 s</option>
+              <option value="60">60 s</option>
+              <option value="120">2 min</option>
+            </select>
+          </label>
+        </div>
+        <button type="button" id="resetStyles" class="apply-all" title="Retire les réglages individuels d'apparence et de taille">Remettre toutes les jauges sur l'apparence par défaut</button>
+        <div class="field">Configuration (jauges, positions, apparence, réglages d'export)
+          <div class="row">
+            <button type="button" id="exportConfig" title="Enregistre la configuration dans un fichier .json pour la réappliquer sur une autre vidéo">Exporter la configuration</button>
+            <button type="button" id="importConfig" title="Réapplique une configuration exportée (ou celle d'un projet .otproj)">Importer…</button>
+            <input type="file" id="fileConfig" accept=".json,.otproj,application/json" hidden>
+          </div>
+        </div>
+        <p class="msg" id="configInfo" hidden></p>
+      </section>
+
+      <section data-tab="markers" hidden>
+        <h2>Marqueurs / chapitres</h2>
+        <p class="hint" id="markerEmpty" data-i18n>Aucun marqueur. Pose-en avec <b>◆ Marqueur ici</b> (touche <kbd>M</kbd>) sous la frise, ou <b>✨ Proposer depuis le log</b>.</p>
+        <ul class="marker-rows" id="markerList"></ul>
+        <div class="row marker-tools" id="markerTools" hidden>
+          <span class="hint" id="markerCount"></span>
+          <button type="button" id="markerClear" disabled title="Retire tous les marqueurs">Tout retirer</button>
+        </div>
+        <div class="marker-export" id="markerExport" hidden>
+          <h3>Exporter</h3>
+          <p class="hint" data-i18n>Temps de la <b>vidéo exportée</b> (passages coupés retirés). Les chapitres sont aussi inscrits dans le MP4 de l'export rapide (VLC, mpv).</p>
+          <label class="marker-yt-label" for="markerYoutube">Chapitres YouTube, à coller dans la description</label>
+          <textarea id="markerYoutube" rows="5" readonly></textarea>
+          <p class="hint warn" id="markerYoutubeWarn" hidden></p>
+          <div class="row">
+            <button type="button" id="markerCopy" title="Copie les chapitres dans le presse-papiers">📋 Copier les chapitres</button>
+            <button type="button" id="markerTxt" title="Enregistre les chapitres YouTube dans un fichier texte">⭳ chapitres .txt</button>
+          </div>
+          <div class="row">
+            <button type="button" id="markerEdl" title="DaVinci Resolve : clic droit sur la timeline → Timelines → Import → Timeline Markers from EDL">⭳ DaVinci Resolve (.edl)</button>
+            <label class="marker-tc" title="Timecode de départ de la timeline DaVinci Resolve (01:00:00:00 par défaut dans Resolve)">Départ <select id="markerTcStart"><option value="3600">01:00:00:00</option><option value="0">00:00:00:00</option></select></label>
+          </div>
+          <div class="row">
+            <button type="button" id="markerXml" title="Premiere Pro : Fichier → Importer. Séquence contenant la vidéo exportée et ses marqueurs (aussi lue par DaVinci Resolve et Final Cut Pro 7)">⭳ Premiere Pro (.xml)</button>
+          </div>
+        </div>
+      </section>
+
+      <section data-tab="annotations" hidden>
+        <h2>Annotations</h2>
+        <p class="hint" data-i18n>Textes, émojis et flèches affichés quelques secondes sur la vidéo, pour faire ressortir une valeur, réagir ou expliquer. Glisse-les dans l'aperçu (et la pointe de la flèche), tire un coin ou utilise la molette pour la taille, <kbd>Suppr</kbd> pour retirer.</p>
+        <div class="row">
+          <button type="button" id="annotAddPanel" disabled title="Ajoute une annotation à l'instant affiché (touche N)">💬 Annotation ici</button>
+        </div>
+        <p class="hint" id="annotEmpty" data-i18n>Aucune annotation. Pose-en une avec <b>💬 Annotation ici</b> (touche <kbd>N</kbd>), ici ou sous la frise.</p>
+        <ul class="annot-rows" id="annotList"></ul>
+        <div class="row marker-tools" id="annotTools" hidden>
+          <span class="hint" id="annotCount"></span>
+          <button type="button" id="annotClear" disabled title="Retire toutes les annotations">Tout retirer</button>
+        </div>
+      </section>
+
+      <section data-tab="export" hidden>
+        <h2>4. Export</h2>
+        <p class="hint">Les vidéos MP4, MOV et AVI sont traitées image par image, plus vite que la lecture, même si l'onglet passe en arrière-plan. Les autres formats passent par un export en temps réel.</p>
+        <details class="tip" id="gpuTip" hidden>
+          <summary>Export lent, carte graphique à 0 % ?</summary>
+          <p class="hint" data-i18n>Sur un PC portable, Windows fait souvent tourner le navigateur sur la puce graphique intégrée (Intel / AMD) : la carte graphique dédiée (NVIDIA / AMD) reste à 0 % pendant l'export. Pour la lui confier : <b>Paramètres Windows › Système › Affichage › Graphiques</b>, choisis le navigateur (Chrome ou Edge), règle-le sur <b>Hautes performances</b>, puis ferme et relance le navigateur. Branche aussi le PC sur secteur : sur batterie, Windows bride le navigateur (mode efficacité).</p>
+        </details>
+        <p class="src-info" id="srcInfo" hidden></p>
+        <label class="field" title="Séquence PNG : les jauges seules sur fond transparent, une image par trame, à poser sur la vidéo dans un logiciel de montage (Premiere, Resolve, Final Cut…)">Format
+          <select id="expFormat">
+            <option value="mp4" selected>Vidéo MP4 avec l'incrustation</option>
+            <option value="vertical">Vidéo verticale 9:16 (Shorts, Reels, TikTok)</option>
+            <option value="png">Séquence PNG transparente (incrustation seule)</option>
+          </select>
+        </label>
+        <label class="field" id="expBgField" hidden title="Sans vidéo chargée, les jauges sont dessinées sur ce fond">Fond (sans vidéo)
+          <select id="expBg">
+            <option value="green" selected>Vert (à incruster au montage)</option>
+            <option value="black">Noir</option>
+            <option value="sky">Ciel et sol (comme l'aperçu)</option>
+          </select>
+        </label>
+        <p class="hint" id="expLogOnlyHint" hidden>Aucune vidéo chargée : l'export dessine les jauges sur toute la durée du log, à 30 images par seconde. Le fond vert se retire dans un logiciel de montage (incrustation / chroma key) ; pour un calque transparent, choisis la séquence PNG.</p>
+        <p class="hint" id="expVerticalHint" hidden>Le centre de l'image est gardé (zone claire dans l'aperçu) et les jauges sont replacées dans le cadre vertical. Pour un extrait court, garde le meilleur passage :</p>
+        <button type="button" id="keepHighlight" hidden disabled title="Remplace les coupes pour ne garder que 30 s autour de la vitesse max (Ctrl+Z pour revenir)">✂ Garder les 30 s autour de la vitesse max</button>
+        <p class="hint" id="expPngHint" hidden>Une image PNG par trame, à la cadence de la vidéo, avec les jauges sur fond transparent. Les images sont regroupées dans une archive ZIP : décompresse-la avant de l'importer. Dans le logiciel de montage, importe la séquence et pose-la sur une piste au-dessus de la vidéo. Les jauges étant dessinées, elles restent nettes en 4K même depuis une vidéo HD.</p>
+        <div class="export-opts">
+          <label class="field">Résolution
+            <select id="expRes">
+              <option value="">Celle de la vidéo</option>
+              <option value="2160">4K (2160p)</option>
+              <option value="1440">1440p</option>
+              <option value="1080">1080p</option>
+              <option value="720">720p</option>
+            </select>
+          </label>
+          <label class="field">Qualité
+            <select id="expQuality">
+              <option value="source" selected>Identique à la source</option>
+              <option value="high">Supérieure (×1,5)</option>
+              <option value="max">Maximale (×2,5)</option>
+              <option value="light">Légère (partage rapide)</option>
+              <option value="custom">Personnalisée…</option>
+            </select>
+          </label>
+        </div>
+        <div class="export-opts">
+          <label class="field" title="Fondu au noir de part et d'autre de chaque raccord entre deux passages gardés">Fondu aux raccords
+            <select id="expFadeCuts">
+              <option value="0" selected>Aucun (coupe franche)</option>
+              <option value="0.25">0,25 s</option>
+              <option value="0.5">0,5 s</option>
+              <option value="1">1 s</option>
+            </select>
+          </label>
+          <label class="field" title="Ouverture depuis le noir et fermeture vers le noir (image et son)">Fondu début / fin
+            <select id="expFadeEnds">
+              <option value="0" selected>Aucun</option>
+              <option value="0.5">0,5 s</option>
+              <option value="1">1 s</option>
+              <option value="2">2 s</option>
+              <option value="3">3 s</option>
+            </select>
+          </label>
+        </div>
+        <label class="field" id="expMbpsField" hidden>Débit vidéo (Mbit/s)
+          <input type="number" id="expMbps" min="0.5" max="400" step="0.5" value="20">
+        </label>
+        <p class="hint" id="expEstimate"></p>
+        <label class="check field-check"><input type="checkbox" id="expAudio" checked> Garder le son d'origine</label>
+        <label class="vol field-vol" title="Volume du son d'origine dans la vidéo exportée">Volume
+          <input type="range" id="expAudioVol" min="0" max="2" step="0.05" value="1"><span id="expAudioVolVal">100 %</span>
+        </label>
+        <p class="hint tracks-hint" id="expTracksHint">Le son ajouté dans « 1. Fichiers » est mixé par-dessus, avec ses coupes.</p>
+        <div class="row">
+          <button type="button" class="primary" id="export" disabled>Exporter la vidéo</button>
+          <button type="button" id="cancelExport" hidden>Annuler</button>
+        </div>
+        <div class="progress" id="progress" hidden><div id="progressBar"></div></div>
+        <p class="msg" id="exportInfo" hidden></p>
+        <a id="download" class="primary" hidden>Télécharger</a>
+        <div class="share-card" id="shareCard" hidden>
+          <p class="share-title">Ta vidéo est prête : montre-la !</p>
+          <p class="share-credit">Tu publies cette vidéo ? Cite Telemetry Overlay et son lien dans la description : c'est la meilleure façon de soutenir l'appli. Merci ! Les boutons ci-dessous copient un texte tout prêt.</p>
+          <div class="row">
+            <button type="button" class="primary" id="shareFile" title="Envoie la vidéo vers WhatsApp, Discord, Mail… par le menu de partage du système">📤 Partager la vidéo</button>
+            <button type="button" class="primary" id="shareClip" hidden title="Vidéo trop lourde pour le partage direct : exporte les 30 s autour de la vitesse max en 1080p au plus (Ctrl+Z rend les coupes)">✂ Partager un extrait de 30 s</button>
+            <button type="button" id="copyCaption" title="Chiffres clés du vol, lien de l'appli et hashtags, à coller sous ta publication">📋 Copier une légende</button>
+            <button type="button" id="copyYoutube" title="Une ligne avec le lien de l'appli, à coller dans la description YouTube">▶ Texte pour YouTube</button>
+          </div>
+        </div>
+
+        <p class="field share-head">Partager</p>
+        <div class="row">
+          <button type="button" id="flightCard" title="Image carrée avec la trace GPS et les chiffres clés du vol, pour Instagram, Strava, Discord…">🖼 Image de synthèse du vol</button>
+          <button type="button" id="shareApp" title="Envoie le lien de Telemetry Overlay à un ami">🔗 Recommander l'appli</button>
+        </div>
+        <div class="flight-card" id="flightCardBox" hidden>
+          <label class="field">Titre de l'image
+            <input type="text" id="flightCardTitle" maxlength="80" autocomplete="off"
+                   title="Laisse vide pour reprendre le nom de la vidéo">
+          </label>
+          <label class="check"><input type="checkbox" id="flightCardShowTitle" checked> Afficher un titre</label>
+          <img id="flightCardImg" alt="Image de synthèse du vol">
+          <div class="row">
+            <a id="flightCardDownload" class="primary">Télécharger l'image</a>
+            <button type="button" id="flightCardShare" hidden>📤 Partager l'image</button>
+          </div>
+        </div>
+        <p class="msg" id="shareMsg"></p>
+      </section>
+
+    </aside>
+
+    <section class="stage">
+      <div class="screen">
+        <canvas id="canvas" width="1280" height="720"></canvas>
+        <div class="placeholder" id="placeholder">
+          <p>Charge une vidéo et un log pour voir l'aperçu.</p>
+          <button type="button" class="primary sample-cta" id="sampleCta" title="Une minute de vol filmée avec des lunettes Walksnail Avatar et l'OSD INAV enregistré à côté (12 Mo)">Essayer avec un exemple (vidéo + OSD)</button>
+          <p class="sample-error" id="sampleError" role="alert" hidden></p>
+        </div>
+        <div class="align-bar" id="alignBar" role="toolbar" aria-label="Aligner les jauges sélectionnées" hidden>
+          <span class="align-grip" id="alignGrip" title="Glisser pour déplacer la barre (double-clic : la remettre en haut)"><svg viewBox="0 0 8 16" aria-hidden="true"><circle cx="2" cy="3" r="1.2"/><circle cx="6" cy="3" r="1.2"/><circle cx="2" cy="8" r="1.2"/><circle cx="6" cy="8" r="1.2"/><circle cx="2" cy="13" r="1.2"/><circle cx="6" cy="13" r="1.2"/></svg></span>
+          <span class="align-count" id="alignCount"></span>
+          <span class="align-group">
+            <span class="align-label">Aligner</span>
+            <button type="button" data-align="left" title="Aligner à gauche"><svg viewBox="0 0 16 16" aria-hidden="true"><line x1="2" y1="1" x2="2" y2="15"/><rect x="4" y="3" width="10" height="4"/><rect x="4" y="9" width="6" height="4"/></svg></button>
+            <button type="button" data-align="hcenter" title="Centrer horizontalement (sur une même verticale)"><svg viewBox="0 0 16 16" aria-hidden="true"><line x1="8" y1="1" x2="8" y2="15"/><rect x="3" y="3" width="10" height="4"/><rect x="5" y="9" width="6" height="4"/></svg></button>
+            <button type="button" data-align="right" title="Aligner à droite"><svg viewBox="0 0 16 16" aria-hidden="true"><line x1="14" y1="1" x2="14" y2="15"/><rect x="2" y="3" width="10" height="4"/><rect x="6" y="9" width="6" height="4"/></svg></button>
+            <span class="align-sep"></span>
+            <button type="button" data-align="top" title="Aligner en haut"><svg viewBox="0 0 16 16" aria-hidden="true"><line x1="1" y1="2" x2="15" y2="2"/><rect x="3" y="4" width="4" height="10"/><rect x="9" y="4" width="4" height="6"/></svg></button>
+            <button type="button" data-align="vcenter" title="Centrer verticalement (sur une même horizontale)"><svg viewBox="0 0 16 16" aria-hidden="true"><line x1="1" y1="8" x2="15" y2="8"/><rect x="3" y="3" width="4" height="10"/><rect x="9" y="5" width="4" height="6"/></svg></button>
+            <button type="button" data-align="bottom" title="Aligner en bas"><svg viewBox="0 0 16 16" aria-hidden="true"><line x1="1" y1="14" x2="15" y2="14"/><rect x="3" y="2" width="4" height="10"/><rect x="9" y="6" width="4" height="6"/></svg></button>
+          </span>
+          <span class="align-group">
+            <span class="align-label">Répartir</span>
+            <button type="button" data-align="hdist" title="Répartir horizontalement (espacement égal, 3 jauges ou plus)"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="4" width="3" height="8"/><rect x="6.5" y="2" width="3" height="12"/><rect x="12" y="5" width="3" height="6"/></svg></button>
+            <button type="button" data-align="vdist" title="Répartir verticalement (espacement égal, 3 jauges ou plus)"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="1" width="8" height="3"/><rect x="2" y="6.5" width="12" height="3"/><rect x="5" y="12" width="6" height="3"/></svg></button>
+          </span>
+          <span class="align-group">
+            <span class="align-label">Disposer</span>
+            <button type="button" data-align="row" title="Mettre en ligne : côte à côte, alignées en haut"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="3" width="4" height="7"/><rect x="6" y="3" width="4" height="10"/><rect x="11" y="3" width="4" height="5"/></svg> Ligne</button>
+            <button type="button" data-align="col" title="Mettre en colonne : les unes sous les autres, alignées à gauche"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="1" width="8" height="4"/><rect x="2" y="6" width="12" height="4"/><rect x="2" y="11" width="6" height="4"/></svg> Colonne</button>
+            <button type="button" data-align="groupbg" id="groupBgBtn" title="Un seul fond pour l'ensemble des jauges sélectionnées, espaces entre elles compris (cliquer à nouveau pour le retirer)"><svg viewBox="0 0 16 16" aria-hidden="true"><rect class="bg" x="1" y="1" width="14" height="14" rx="2"/><rect x="3.5" y="4" width="4" height="8"/><rect x="9" y="4" width="3.5" height="5"/></svg> Fond commun</button>
+          </span>
+        </div>
+        <div class="fs-bar" id="fsBar">
+          <div class="fs-tip" id="fsTip" hidden></div>
+          <div class="fs-row" id="fsRow">
+            <button type="button" id="fsFrameBack" title="Image précédente (←)" aria-label="Image précédente">◂|</button>
+            <button type="button" id="fsPlay" title="Lecture / pause (espace)">▶</button>
+            <button type="button" id="fsFrameFwd" title="Image suivante (→)" aria-label="Image suivante">|▸</button>
+            <span class="fs-clock" id="fsClock"></span>
+            <button type="button" id="fsExit" class="fs-btn" title="Quitter le plein écran (Échap ou F)" aria-label="Quitter le plein écran"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 1.5v4h-4M14.5 5.5h-4v-4M10.5 14.5v-4h4M1.5 10.5h4v4"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <p class="stage-hint">Glisse une jauge dans l'aperçu pour la déplacer (Alt : sans aimantation), molette pour la redimensionner, clic pour régler son apparence. Ctrl ou Maj + clic (ou un cadre tracé dans le vide) pour en sélectionner plusieurs et les aligner.</p>
+      <div class="stage-split" id="stageSplit" role="separator" aria-orientation="horizontal" tabindex="0" title="Glisser pour agrandir ou réduire la partie du dessous (double-clic : taille normale)"><span></span></div>
+      <div class="stage-bottom" id="stageBottom">
+      <div class="controls">
+        <span class="play-group">
+          <button type="button" id="frameBack" class="frame-btn" disabled title="Image précédente (←)" aria-label="Image précédente">◂|</button>
+          <button type="button" id="play" disabled title="Lecture / pause (espace)">▶</button>
+          <button type="button" id="frameFwd" class="frame-btn" disabled title="Image suivante (→)" aria-label="Image suivante">|▸</button>
+        </span>
+        <canvas id="timeline" height="34" title="Clique ou glisse pour te déplacer dans la vidéo. Couloir d'un son ajouté : glisser pour le déplacer, Maj + glisser pour sélectionner un passage à couper."></canvas>
+        <span class="clock-box">
+          <span id="clock">0:00.0 / 0:00.0</span>
+          <button type="button" id="fullscreen" class="fs-btn" title="Aperçu en plein écran (touche F)" aria-label="Aperçu en plein écran"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4"/></svg></button>
+        </span>
+        <span class="lane-kind" aria-hidden="true">Log</span>
+        <canvas id="chart" height="34" title="Courbe du log : glisse le curseur (ou la courbe) pour te déplacer dans le log ; clique sur l'instant reconnaissable pour synchroniser. Molette pour zoomer, Maj + molette pour te déplacer dans la courbe zoomée."></canvas>
+        <div class="chart-opts">
+          <select id="chartColumn" aria-label="Donnée affichée"></select>
+          <select id="chartView" title="Aligné sur la frise de la vidéo ci-dessus, log complet, ou seulement les passages gardés (une fois synchronisée)" disabled>
+            <option value="video">Aligné sur la frise</option>
+            <option value="full">Log complet</option>
+            <option value="montage">Vidéo montée</option>
+          </select>
+        </div>
+      </div>
+      <div class="cutbar">
+        <div class="cut-group">
+          <span class="cut-kind">Couper la vidéo</span>
+          <div class="row">
+            <button type="button" id="cutStart" disabled title="Retire tout ce qui précède l'instant affiché">⇤ Le début jusqu'ici</button>
+            <button type="button" id="cutIn" disabled title="Touche I">[ Début de coupe</button>
+            <button type="button" id="cutOut" disabled title="Touche O">Fin de coupe ]</button>
+            <button type="button" id="cutEnd" disabled title="Retire tout ce qui suit l'instant affiché">La fin à partir d'ici ⇥</button>
+            <span class="cut-summary" id="cutSummary"></span>
+          </div>
+          <ul class="cuts" id="cutList"></ul>
+        </div>
+        <div class="cut-group markers-group">
+          <span class="cut-kind">Marqueurs / chapitres</span>
+          <div class="row">
+            <button type="button" id="markerAdd" disabled title="Pose un marqueur à l'instant affiché (touche M)">◆ Marqueur ici</button>
+            <button type="button" id="markerPropose" disabled title="Ajoute les moments marquants du vol : décollage, atterrissage, altitude, vitesse et distance max, changements de mode, batterie faible">✨ Proposer depuis le log</button>
+            <button type="button" id="annotAdd" disabled title="Ajoute une annotation (texte, émoji, flèche) à l'instant affiché (touche N)">💬 Annotation ici</button>
+            <button type="button" id="markerOpen" title="Renommer, colorer, retirer les marqueurs et les exporter (chapitres YouTube, DaVinci Resolve, Premiere Pro)">☰ Liste et export</button>
+            <span class="cut-summary" id="markerSummary"></span>
+          </div>
+        </div>
+        <div class="cut-group">
+          <span class="cut-kind">Couper le log</span>
+          <div class="row">
+            <button type="button" id="logCutStart" disabled title="Ignore le log avant l'instant affiché (sol, attente…) : jauges, statistiques et échelles ne tiennent compte que du reste">⇤ Le log jusqu'ici</button>
+            <button type="button" id="logCutIn" disabled title="Début du passage du log à retirer">[ Début de coupe</button>
+            <button type="button" id="logCutOut" disabled title="Fin du passage du log à retirer">Fin de coupe ]</button>
+            <button type="button" id="logSplit" disabled title="Coupe le log en deux à l'instant affiché, sans rien retirer : la partie suivante peut ensuite être recalée">✂ Scinder ici</button>
+            <button type="button" id="logCutEnd" disabled title="Ignore le log après l'instant affiché">Le log à partir d'ici ⇥</button>
+            <span class="cut-summary" id="logCutSummary"></span>
+          </div>
+          <ul class="cuts" id="logCutList"></ul>
+          <p class="hint" id="logPartInfo" hidden></p>
+        </div>
+        <div class="cut-group" id="cutAudioGroup" hidden>
+          <span class="cut-kind">Couper le son ajouté</span>
+          <div class="row">
+            <button type="button" id="cutAudio" disabled title="Retire du son ajouté le passage sélectionné (touche Suppr)">✂ Couper la sélection</button>
+            <span class="cut-hint" data-i18n><b>Maj + glisser</b> sur le couloir du son dans la frise pour sélectionner un passage, puis <b>Suppr</b> ou ce bouton.</span>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+  </main>
+
+  <video id="video" playsinline preload="auto" class="source-video"></video>
+  <script type="module" src="js/app.js?v=202611101700"></script>
+</body>
+</html>
