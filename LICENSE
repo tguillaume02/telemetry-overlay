@@ -1,0 +1,221 @@
+Telemetry Overlay — Licence propriétaire / Proprietary licence
+
+Copyright © 2026 Thibault Guillaume. Tous droits réservés. All rights reserved.
+
+English version below. En cas de divergence, la version française prévaut.
+
+======================================================================
+FRANÇAIS
+======================================================================
+
+1. Objet
+
+Telemetry Overlay (ci-après « le Logiciel ») est une œuvre protégée par le droit
+d'auteur (Code de la propriété intellectuelle, livres I et III) et par les
+conventions internationales. Le Logiciel comprend, sans s'y limiter :
+  - le code source et le code publié, y compris sous forme regroupée, minifiée
+    ou autrement transformée ;
+  - l'interface utilisateur : organisation des écrans, enchaînement des
+    fonctions, présentation visuelle, dessin des jauges, des cadrans et des
+    instruments, textes, libellés et messages ;
+  - le nom et l'identité visuelle du projet, le logo, les icônes, les images,
+    les captures d'écran, les vidéos de présentation, le guide et la
+    documentation.
+
+Le fait que le Logiciel soit gratuit ou que ses fichiers soient consultables
+publiquement ne confère aucun droit autre que ceux énumérés à l'article 2.
+
+2. Ce qui est autorisé
+
+Vous pouvez, gratuitement :
+  a) utiliser le Logiciel à son adresse officielle, actuellement
+     https://tguillaume02.github.io/telemetry-overlay/ (ou toute adresse que
+     l'auteur indiquera pour la remplacer), y compris dans sa
+     version installée depuis cette adresse (application web), pour un usage
+     personnel ou professionnel ;
+  b) utiliser librement les vidéos, images et fichiers que vous produisez avec
+     le Logiciel à partir de vos propres données : ils vous appartiennent ;
+  c) consulter le dépôt public et en créer une copie (« fork ») sur GitHub, dans
+     la seule mesure imposée par les conditions d'utilisation de GitHub. Une
+     telle copie ne donne aucun droit d'utiliser, de modifier, de publier ou
+     d'héberger le Logiciel en dehors de GitHub ;
+  d) faire des copies d'écran ou de courts extraits de l'interface pour un
+     article, un test, un tutoriel ou une vidéo qui présente le Logiciel, en
+     citant son nom et son adresse officielle.
+
+3. Ce qui est interdit
+
+Sauf autorisation écrite et préalable de l'auteur, il est interdit, en tout ou
+en partie, par quelque moyen que ce soit :
+  a) de reproduire, copier, télécharger pour la republier, distribuer, vendre,
+     louer, prêter, céder ou concéder en sous-licence le Logiciel ;
+  b) d'héberger, de mettre en ligne, de dupliquer (« miroir ») ou de rendre
+     accessible le Logiciel à une autre adresse que l'adresse officielle, y
+     compris sur un réseau local ou intégré à un autre site ou à une autre
+     application ;
+  c) de modifier, traduire, adapter ou arranger le Logiciel, ou de créer une
+     œuvre dérivée à partir de tout ou partie de son code ;
+  d) de reprendre ou d'imiter l'interface, la présentation visuelle, le dessin
+     des jauges, le logo ou l'identité visuelle du Logiciel dans un autre
+     produit ;
+  e) de décompiler, désassembler, « déminifier » ou analyser le code du
+     Logiciel pour en reconstituer le code source, hors des cas expressément
+     permis par l'article L.122-6-1 du Code de la propriété intellectuelle ;
+  f) de contourner, désactiver ou altérer les mesures techniques de protection
+     du Logiciel, notamment celles qui limitent son fonctionnement à l'adresse
+     officielle ;
+  g) de supprimer ou modifier les mentions de droits d'auteur, de licence ou
+     d'origine ;
+  h) d'extraire le code, les textes ou les images du Logiciel par des procédés
+     automatisés (fouille de textes et de données), notamment pour entraîner
+     ou alimenter des modèles d'intelligence artificielle. L'auteur s'oppose
+     expressément à cette fouille au sens de l'article L.122-5-3 du Code de la
+     propriété intellectuelle et de l'article 4 de la directive (UE) 2019/790.
+
+4. Éléments de tiers
+
+Certains éléments appartiennent à des tiers et restent soumis à leur propre
+licence, qui prévaut pour eux sur la présente :
+  - les polices OSD du dossier fonts/osd/, issues du projet fpv-wtf/msp-osd,
+    sous licence GNU GPL version 3 (fichier fonts/osd/LICENSE) ;
+  - les fonds de carte et données de relief (Esri World Imagery, AWS Terrain
+    Tiles), chargés depuis leurs serveurs et soumis aux conditions de leurs
+    fournisseurs.
+Les noms et marques cités (DJI, GoPro, Insta360, Garmin, EdgeTX, ArduPilot,
+INAV, Betaflight, Walksnail, etc.) appartiennent à leurs propriétaires
+respectifs et ne sont cités que pour indiquer la compatibilité.
+
+5. Suggestions et signalements
+
+Les suggestions, idées et signalements envoyés à l'auteur (notamment par les
+« issues » GitHub) peuvent être utilisés librement par l'auteur pour améliorer
+le Logiciel, sans contrepartie.
+
+6. Absence de garantie
+
+Le Logiciel est fourni « en l'état », sans garantie d'aucune sorte, expresse ou
+implicite, notamment d'exactitude des données affichées, d'adéquation à un usage
+particulier ou de disponibilité. Dans les limites permises par la loi, l'auteur
+ne peut être tenu responsable d'aucun dommage résultant de l'utilisation ou de
+l'impossibilité d'utiliser le Logiciel. Le Logiciel ne doit pas servir à la
+navigation, au pilotage ni à aucune décision de sécurité.
+
+7. Résiliation
+
+Toute utilisation contraire à la présente licence met fin automatiquement aux
+droits qu'elle accorde, sans préjudice des actions que l'auteur peut engager
+(notamment pour contrefaçon, articles L.335-2 et suivants du Code de la
+propriété intellectuelle, ou pour concurrence déloyale ou parasitisme).
+
+8. Droit applicable
+
+La présente licence est régie par le droit français. Tout litige relève des
+tribunaux français compétents, sous réserve des dispositions impératives
+protégeant les consommateurs.
+
+9. Demandes d'autorisation
+
+Pour toute utilisation non prévue à l'article 2 : https://github.com/tguillaume02
+
+======================================================================
+ENGLISH
+======================================================================
+
+1. Subject
+
+Telemetry Overlay (the "Software") is a work protected by copyright (French
+Intellectual Property Code, books I and III) and by international treaties. The
+Software includes, without limitation:
+  - the source code and the published code, including in bundled, minified or
+    otherwise transformed form;
+  - the user interface: screen layout, sequence of functions, visual design,
+    design of gauges, dials and instruments, texts, labels and messages;
+  - the project's name and visual identity, logo, icons, images, screenshots,
+    presentation videos, guide and documentation.
+
+The fact that the Software is free of charge or that its files can be viewed
+publicly grants no right other than those listed in section 2.
+
+2. What is permitted
+
+You may, free of charge:
+  a) use the Software at its official address, currently
+     https://tguillaume02.github.io/telemetry-overlay/ (or any address the
+     author designates to replace it), including when
+     installed from that address (web app), for personal or professional use;
+  b) freely use the videos, images and files you produce with the Software
+     from your own data: they belong to you;
+  c) view the public repository and fork it on GitHub, only to the extent
+     required by GitHub's Terms of Service. Such a fork grants no right to use,
+     modify, publish or host the Software outside GitHub;
+  d) take screenshots or short excerpts of the interface for an article,
+     review, tutorial or video presenting the Software, naming it and giving
+     its official address.
+
+3. What is prohibited
+
+Unless the author has given prior written permission, you may not, in whole or
+in part, by any means:
+  a) reproduce, copy, download in order to republish, distribute, sell, rent,
+     lend, assign or sublicense the Software;
+  b) host, upload, mirror or make the Software available at any address other
+     than the official one, including on a local network or embedded in
+     another website or application;
+  c) modify, translate, adapt or arrange the Software, or create a derivative
+     work from all or part of its code;
+  d) reuse or imitate the Software's interface, visual design, gauge designs,
+     logo or visual identity in another product;
+  e) decompile, disassemble, "unminify" or analyse the Software's code to
+     reconstruct its source code, except where expressly permitted by
+     article L.122-6-1 of the French Intellectual Property Code;
+  f) circumvent, disable or tamper with the Software's technical protection
+     measures, including those restricting it to its official address;
+  g) remove or alter copyright, licence or origin notices;
+  h) extract the Software's code, texts or images by automated means (text
+     and data mining), in particular to train or feed artificial intelligence
+     models. The author expressly reserves this right within the meaning of
+     article L.122-5-3 of the French Intellectual Property Code and article 4
+     of Directive (EU) 2019/790.
+
+4. Third-party components
+
+Some components belong to third parties and remain under their own licence,
+which prevails over this one for them:
+  - the OSD fonts in fonts/osd/, from the fpv-wtf/msp-osd project, under the
+    GNU GPL version 3 (file fonts/osd/LICENSE);
+  - map and elevation tiles (Esri World Imagery, AWS Terrain Tiles), loaded
+    from their servers and subject to their providers' terms.
+The names and trademarks mentioned (DJI, GoPro, Insta360, Garmin, EdgeTX,
+ArduPilot, INAV, Betaflight, Walksnail, etc.) belong to their respective owners
+and are cited only to indicate compatibility.
+
+5. Feedback
+
+Suggestions, ideas and reports sent to the author (including through GitHub
+issues) may be used freely by the author to improve the Software, without
+compensation.
+
+6. No warranty
+
+The Software is provided "as is", without warranty of any kind, express or
+implied, including accuracy of the displayed data, fitness for a particular
+purpose or availability. To the extent permitted by law, the author shall not
+be liable for any damage arising from the use of, or inability to use, the
+Software. The Software must not be used for navigation, piloting or any safety
+decision.
+
+7. Termination
+
+Any use contrary to this licence automatically terminates the rights it grants,
+without prejudice to any action the author may take (including for copyright
+infringement, articles L.335-2 et seq. of the French Intellectual Property
+Code, or for unfair competition or free-riding).
+
+8. Governing law
+
+This licence is governed by French law. Any dispute falls under the competent
+French courts, subject to mandatory consumer protection rules.
+
+9. Permission requests
+
+For any use not covered by section 2: https://github.com/tguillaume02
