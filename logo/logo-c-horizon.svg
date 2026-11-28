@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Telemetry Overlay">
+  <defs><clipPath id="h"><circle cx="64" cy="66" r="40"/></clipPath></defs>
+  <rect width="128" height="128" rx="28" fill="#0d1117"/>
+  <g clip-path="url(#h)">
+    <rect width="128" height="128" fill="#38bdf8"/>
+    <g transform="rotate(-14 64 66)">
+      <rect x="-20" y="66" width="168" height="80" fill="#0b2533"/>
+      <path d="M-20 66h168" stroke="#e6edf3" stroke-width="3"/>
+    </g>
+  </g>
+  <circle cx="64" cy="66" r="40" fill="none" stroke="#e6edf3" stroke-width="5"/>
+  <path d="M38 68h16l10 8 10-8h16" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="104" cy="24" r="7" fill="#f87171"/>
+</svg>
